@@ -2,6 +2,11 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING, Optional
 
+#pip install python-dotenv
+# Usar en el main
+# from dotenv import load_dotenv
+# load_dotenv()
+
 # pip install google-generativeai
 # Se importa la librería de Google para interactuar con Gemini
 try:
