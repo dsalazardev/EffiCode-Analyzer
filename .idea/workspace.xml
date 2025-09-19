@@ -5,10 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6ec8a5b5-8cf4-41b2-9957-56c2f8ae3477" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/Servicios/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Modelos/Algoritmo.py" beforeDir="false" afterPath="$PROJECT_DIR$/Modelos/Algoritmo.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Modelos/Complejidad.py" beforeDir="false" afterPath="$PROJECT_DIR$/Modelos/Complejidad.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Modelos/Grammar.py" beforeDir="false" afterPath="$PROJECT_DIR$/Modelos/Grammar.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Modelos/LLMService.py" beforeDir="false" afterPath="$PROJECT_DIR$/Modelos/LLMService.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Modelos/Analizador.py" beforeDir="false" afterPath="$PROJECT_DIR$/Modelos/Analizador.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Modelos/Ast.py" beforeDir="false" afterPath="$PROJECT_DIR$/Servicios/Ast.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Modelos/Grammar.py" beforeDir="false" afterPath="$PROJECT_DIR$/Servicios/Grammar.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Modelos/LLMService.py" beforeDir="false" afterPath="$PROJECT_DIR$/Servicios/LLMService.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Modelos/Parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/Modelos/Parser.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -56,6 +60,11 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\ESCRITORIO\ARCHIVOS\INGENIERIA EN SISTEMAS Y COMPUTACIÓN\SEMESTRE 7\ANALISIS Y DISEÑO DE ALGORITMO\PROYECTO\EffiCode Analyzer\Servicios" />
+    </key>
+  </component>
   <component name="RunManager" selected="Python.Grammar">
     <configuration name="Ast" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="EffiCode Analyzer" />
@@ -71,7 +80,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Modelos/Ast.py" />
+      <option name="SCRIPT_NAME" value="D:\ESCRITORIO\ARCHIVOS\INGENIERIA EN SISTEMAS Y COMPUTACIÓN\SEMESTRE 7\ANALISIS Y DISEÑO DE ALGORITMO\PROYECTO\EffiCode Analyzer\Servicios\Ast.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -94,7 +103,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Modelos/Grammar.py" />
+      <option name="SCRIPT_NAME" value="D:\ESCRITORIO\ARCHIVOS\INGENIERIA EN SISTEMAS Y COMPUTACIÓN\SEMESTRE 7\ANALISIS Y DISEÑO DE ALGORITMO\PROYECTO\EffiCode Analyzer\Servicios\Grammar.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -153,7 +162,7 @@
       <workItem from="1758199553677" duration="103000" />
       <workItem from="1758207905834" duration="233000" />
       <workItem from="1758236075744" duration="5851000" />
-      <workItem from="1758255346415" duration="592000" />
+      <workItem from="1758255346415" duration="2773000" />
     </task>
     <servers />
   </component>

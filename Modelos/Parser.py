@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING
 # Importaciones de tipos para evitar dependencias circulares
 if TYPE_CHECKING:
     from .Analizador import Analizador
-    from .Grammar import Grammar
-    from .Ast import AST
+    from Servicios.Grammar import Grammar
+    from Servicios.Ast import AST
 
 
 class Parser:

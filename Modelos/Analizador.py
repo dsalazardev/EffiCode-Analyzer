@@ -6,9 +6,9 @@ if TYPE_CHECKING:
     from .Reporte import Reporte
     from .Complejidad import Complejidad
     from .Parser import Parser
-    from .LLMService import LLMService
+    from Servicios.LLMService import LLMService
     from .Usuario import Usuario
-    from .Ast import AST
+    from Servicios.Ast import AST
 
 
 class Analizador:

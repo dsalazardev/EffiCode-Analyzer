@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
     from .Analizador import Analizador
     from .Reporte import Reporte
-    from .Ast import AST
+    from Servicios.Ast import AST
     from .tipo_algoritmo import TipoAlgoritmo
 
 class Algoritmo:
