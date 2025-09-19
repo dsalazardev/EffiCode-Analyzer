@@ -1,9 +1,6 @@
-# models/complejidad.py
-
 from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 
-# Importaciones de tipos para evitar dependencias circulares
 if TYPE_CHECKING:
     from .Analizador import Analizador
     from .Reporte import Reporte

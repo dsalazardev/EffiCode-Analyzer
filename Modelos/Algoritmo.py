@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 
-# Importaciones de tipos para evitar dependencias circulares en tiempo de ejecución
 if TYPE_CHECKING:
     from .Analizador import Analizador
     from .Reporte import Reporte

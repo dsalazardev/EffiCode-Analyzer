@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-# Importaciones de tipos para evitar dependencias circulares
 if TYPE_CHECKING:
     from .Analizador import Analizador
     from .Complejidad import Complejidad

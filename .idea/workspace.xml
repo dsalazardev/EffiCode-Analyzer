@@ -5,29 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6ec8a5b5-8cf4-41b2-9957-56c2f8ae3477" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/EffiCode Analyzer.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/copilot.data.migration.agent.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/copilot.data.migration.ask.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/copilot.data.migration.ask2agent.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/copilot.data.migration.edit.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Modelos/Algoritmo.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Modelos/Analizador.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Modelos/Ast.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Modelos/Complejidad.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Modelos/Grammar.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Modelos/LLMService.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Modelos/Parser.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Modelos/Reporte.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Modelos/Usuario.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Modelos/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Modelos/tipo_algoritmo.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Modelos/Algoritmo.py" beforeDir="false" afterPath="$PROJECT_DIR$/Modelos/Algoritmo.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Modelos/Complejidad.py" beforeDir="false" afterPath="$PROJECT_DIR$/Modelos/Complejidad.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Modelos/Grammar.py" beforeDir="false" afterPath="$PROJECT_DIR$/Modelos/Grammar.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Modelos/LLMService.py" beforeDir="false" afterPath="$PROJECT_DIR$/Modelos/LLMService.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,26 +36,26 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python.Ast.executor&quot;: &quot;Run&quot;,
-    &quot;Python.Grammar.executor&quot;: &quot;Run&quot;,
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.Ast.executor": "Run",
+    "Python.Grammar.executor": "Run",
+    "Python.main.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "junie.onboarding.icon.badge.shown": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected="Python.Grammar">
     <configuration name="Ast" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="EffiCode Analyzer" />
@@ -172,7 +153,7 @@
       <workItem from="1758199553677" duration="103000" />
       <workItem from="1758207905834" duration="233000" />
       <workItem from="1758236075744" duration="5851000" />
-      <workItem from="1758255346415" duration="390000" />
+      <workItem from="1758255346415" duration="592000" />
     </task>
     <servers />
   </component>
