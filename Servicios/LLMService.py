@@ -29,7 +29,7 @@ class LLMService:
     de análisis y traducción de algoritmos.
     """
 
-    def __init__(self, id: int, modelo: str = "gemini-1.5-flash-latest"):
+    def __init__(self,modelo: str = "gemini-1.5-flash-latest"):
         """
         Inicializa el servicio LLM, configurando el cliente de la API.
 
@@ -42,7 +42,6 @@ class LLMService:
                         variables de entorno.
             RuntimeError: Si la librería 'google-generativeai' no está instalada.
         """
-        self._id = id
         self._api_key = os.getenv("GOOGLE_API_KEY")
         if not self._api_key:
             raise ValueError("API Key no encontrada. Por favor, configure la variable de entorno 'GOOGLE_API_KEY'.")
@@ -56,14 +55,6 @@ class LLMService:
         self._analizador: Optional[Analizador] = None
 
     # --- Propiedades y Setters ---
-
-    @property
-    def id(self) -> int:
-        return self._id
-
-    @id.setter
-    def id(self, value: int):
-        self._id = value
 
     @property
     def api_key(self) -> str:

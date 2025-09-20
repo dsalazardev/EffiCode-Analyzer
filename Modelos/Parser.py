@@ -95,7 +95,7 @@ if __name__ == '__main__':
     # 1. Inicializar los servicios de los que depende el Parser
     try:
         grammar_service = Grammar()
-        llm_service = LLMService(id=1)
+        llm_service = LLMService()
     except (ValueError, RuntimeError) as e:
         print(f"Error al inicializar servicios base: {e}")
         exit()
@@ -124,7 +124,7 @@ if __name__ == '__main__':
         print("\n--- Análisis del AST ---")
         print(f"Nodos en el AST: {ast_final.contar_nodos()}")
         print(f"Bucles encontrados: {ast_final.extraer_bucles()}")
-        print("\n✅ Parsing completado con éxito.")
+        print("\nParsing completado con éxito.")
 
     except (SyntaxError, ConnectionError) as e:
-        print(f"\n❌ ERROR durante el parsing: {e}")
+        print(f"\nERROR durante el parsing: {e}")
