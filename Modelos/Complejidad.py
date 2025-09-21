@@ -74,3 +74,9 @@ class Complejidad:
     @reporte.setter
     def reporte(self, value: Optional[Reporte]):
         self._reporte = value
+
+    def addAnalizador(self, analizador: Analizador):
+        self._analizador = analizador
+
+    def removeAnalizador(self):
+        self._analizador = None

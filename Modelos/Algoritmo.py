@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from .Reporte import Reporte
     from Servicios.Ast import AST
     from Enumerations.tipo_algoritmo import TipoAlgoritmo
+    from .Usuario import Usuario
 
 class Algoritmo:
     """
@@ -19,6 +20,7 @@ class Algoritmo:
         self._arbol_sintactico: Optional[AST] = None
         self._reporte: Optional[Reporte] = None
         self._analizador: Optional[Analizador] = None
+        self._usuario: Optional[Usuario] = None
 
     @property
     def id(self) -> int:
@@ -67,3 +69,37 @@ class Algoritmo:
     @analizador.setter
     def analizador(self, value: Optional[Analizador]):
         self._analizador = value
+
+    @property
+    def usuario(self) -> Optional[Usuario]:
+        return self._usuario
+
+    @usuario.setter
+    def usuario(self, value: Optional[Usuario]):
+        self._usuario = value
+
+    def addAST(self, ast: AST):
+        self._arbol_sintactico = ast
+
+    def removeAST(self):
+        self._arbol_sintactico = None
+
+    def addReporte(self, reporte: Reporte):
+        self._reporte = reporte
+
+    def removeReporte(self):
+        self._reporte = None
+
+    def addAnalizador(self, analizador: Analizador):
+        self._analizador = analizador
+
+    def removeAnalizador(self):
+        self._analizador = None
+
+    def addUsuario(self, usuario: Usuario):
+        self._usuario = usuario
+
+    def removeUsuario(self):
+        self._usuario = None
+
+

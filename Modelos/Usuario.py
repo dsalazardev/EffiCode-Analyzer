@@ -43,6 +43,18 @@ class Usuario:
     def algoritmos(self) -> List[Algoritmo]:
         return self._algoritmos
 
+    def addAlgoritmo(self, algoritmo: Algoritmo):
+        self._algoritmos.append(algoritmo)
+
+    def removeAlgoritmo(self, algoritmo: Algoritmo):
+        self._algoritmos.remove(algoritmo)
+
+    def addAnalizador(self, analizador: Analizador):
+        self._analizadores.append(analizador)
+
+    def removeAnalizador(self, analizador: Analizador):
+        self._analizadores.remove(analizador)
+
     def ingresar_algoritmo(self, codigo: str) -> Algoritmo:
         """Permite al usuario registrar un nuevo algoritmo."""
         # Lógica para crear y añadir un algoritmo a la lista self._algoritmos

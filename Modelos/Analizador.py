@@ -17,11 +17,11 @@ class Analizador:
     Mapea la clase 'Analizador' del diagrama UML.
     """
     def __init__(self, parser: Parser, llm_service: LLMService):
+        self._parser = parser
+        self._llm_service = llm_service
         self._algoritmos: List[Algoritmo] = []
         self._reporte: Reporte | None = None
         self._complejidad: Complejidad | None = None
-        self._parser = parser
-        self._llm_service = llm_service
         self._usuario: Usuario | None = None
 
     @property
@@ -67,6 +67,30 @@ class Analizador:
     @usuario.setter
     def usuario(self, value: Usuario | None):
         self._usuario = value
+
+    def addAlgoritmo(self, algoritmo: Algoritmo):
+        self._algoritmos.append(algoritmo)
+
+    def removeAlgoritmo(self, algoritmo: Algoritmo):
+        self._algoritmos.remove(algoritmo)
+
+    def addReporte(self, reporte: Reporte):
+        self._reporte = reporte
+
+    def removeReporte(self):
+        self._reporte = None
+
+    def addComplejidad(self, complejidad: Complejidad):
+        self._complejidad = complejidad
+
+    def removeComplejidad(self):
+        self._complejidad = None
+
+    def addUsuario(self, usuario: Usuario):
+        self._usuario = usuario
+
+    def removeUsuario(self):
+        self._usuario = None
 
     def calcular_o(self, ast: AST) -> str:
         """Calcula la cota superior asintótica (Peor Caso)."""

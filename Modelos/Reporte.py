@@ -70,6 +70,18 @@ class Reporte:
     def analizador(self, value: Optional[Analizador]):
         self._analizador = value
 
+    def addAlgoritmo(self, algoritmo: Algoritmo):
+        self._algoritmo = algoritmo
+
+    def removeAlgoritmo(self):
+        self._algoritmo = None
+
+    def addAnalizador(self, analizador: Analizador):
+        self._analizador = analizador
+
+    def removeAnalizador(self):
+        self._analizador = None
+
     def exportar_pdf(self) -> str:
         """Genera una representación del reporte en formato PDF."""
         # Lógica de exportación a PDF (simulada)
