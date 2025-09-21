@@ -6,6 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="6ec8a5b5-8cf4-41b2-9957-56c2f8ae3477" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Servicios/LLMService.py" beforeDir="false" afterPath="$PROJECT_DIR$/Servicios/LLMService.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,6 +60,7 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\ESCRITORIO\ARCHIVOS\INGENIERIA EN SISTEMAS Y COMPUTACIÓN\SEMESTRE 7\ANALISIS Y DISEÑO DE ALGORITMO\PROYECTO\EffiCode Analyzer\Enumerations" />
       <recent name="D:\ESCRITORIO\ARCHIVOS\INGENIERIA EN SISTEMAS Y COMPUTACIÓN\SEMESTRE 7\ANALISIS Y DISEÑO DE ALGORITMO\PROYECTO\EffiCode Analyzer\Servicios" />
     </key>
   </component>
@@ -211,7 +213,7 @@
       <workItem from="1758332397249" duration="802000" />
       <workItem from="1758333297815" duration="6565000" />
       <workItem from="1758369798008" duration="2302000" />
-      <workItem from="1758413698948" duration="4088000" />
+      <workItem from="1758413698948" duration="4976000" />
     </task>
     <servers />
   </component>

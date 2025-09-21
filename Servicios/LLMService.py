@@ -77,7 +77,7 @@ class LLMService:
                     try:
                         print(f"--- [LLMService] Intentando reutilizar archivo en caché: {nombre_archivo} ---")
                         file_obj = genai.get_file(name=nombre_archivo)
-                        print(f"✅ Éxito. Usando el libro '{file_obj.display_name}' desde la caché.")
+                        print(f"Éxito. Usando el libro '{file_obj.display_name}' desde la caché.")
                         return file_obj
                     except exceptions.NotFound:
                         print("--- [LLMService] El archivo en caché ya no existe en Google. Se subirá de nuevo. ---")
