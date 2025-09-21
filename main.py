@@ -11,7 +11,7 @@ from Servicios.Ast import AST
 
 # --- Importaciones de Modelos ---
 from Modelos.Algoritmo import Algoritmo
-from Enumerations.tipo_algoritmo import TipoAlgoritmo
+from Enumerations.tipoAlgoritmo import TipoAlgoritmo
 from Modelos.Reporte import Reporte
 from Modelos.Complejidad import Complejidad
 from Modelos.Usuario import Usuario

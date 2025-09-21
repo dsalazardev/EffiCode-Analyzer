@@ -5,7 +5,7 @@ if TYPE_CHECKING:
     from .Analizador import Analizador
     from .Reporte import Reporte
     from Servicios.Ast import AST
-    from Enumerations.tipo_algoritmo import TipoAlgoritmo
+    from Enumerations.tipoAlgoritmo import TipoAlgoritmo
     from .Usuario import Usuario
 
 class Algoritmo:
