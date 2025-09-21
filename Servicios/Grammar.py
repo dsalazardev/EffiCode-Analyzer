@@ -113,57 +113,7 @@ class Grammar:
             self.parser.parse(codigo)
             return True
         except exceptions.LarkError as e:
-            # print(f"Error de sintaxis: {e}") # Descomentar para depuración
+            print(f"Error de sintaxis: {e}")
             return False
 
 
-# --- Ejemplo de Uso ---
-if __name__ == "__main__":
-    # 1. Crear una instancia de la gramática
-    gramatica_cormen = Grammar()
-
-    # 2. Listar las reglas principales
-    print("--- Reglas Principales de la Gramática Estilo Cormen ---")
-    reglas = gramatica_cormen.listar_reglas()
-    for nombre in ['if_sentencia', 'for_sentencia', 'while_sentencia', 'asignacion']:
-        print(f"{nombre}: {reglas.get(nombre)}")
-    print("-" * 30)
-
-    # 3. Validar pseudocódigo realista inspirado en "Introduction to Algorithms"
-    print("\n--- Validación de Pseudocódigo ---")
-
-    # Ejemplo de Insertion-Sort (eliminamos los 'end' de los bloques para ser más fiel a Cormen)
-    insertion_sort_code = """
-        // Ordena un arreglo A
-        for j ← 2 to A.length do
-            key ← A[j]
-            i ← j - 1
-            while i > 0 and A[i] > key do
-                A[i+1] ← A[i]
-                i ← i - 1
-            A[i+1] ← key
-    """
-
-    # Ejemplo de una condición
-    condicional_code = """
-        if x ≠ y then
-            z ← 1
-        else
-            z ← 2
-    """
-
-    # Ejemplo inválido (usa ':=' en lugar de '←')
-    codigo_invalido = "x := 5 // Error de sintaxis"
-
-    # Ejemplo de una declaración de función simple
-    declaracion_funcion_code = """
-    MI-FUNCION(A, n)
-        for i ← 1 to n do
-            A[i] ← A[i] + 1
-        return A
-    """
-
-    print(f"Código de Insertion-Sort: Válido -> {gramatica_cormen.validar_sentencia(insertion_sort_code)}")
-    print(f"Código condicional: Válido -> {gramatica_cormen.validar_sentencia(condicional_code)}")
-    print(f"Código con asignación inválida: Válido -> {gramatica_cormen.validar_sentencia(codigo_invalido)}")
-    print(f"Código de declaración de función: Válido -> {gramatica_cormen.validar_sentencia(declaracion_funcion_code)}")
