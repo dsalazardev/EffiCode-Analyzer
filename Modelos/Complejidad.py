@@ -78,5 +78,6 @@ class Complejidad:
     def addAnalizador(self, analizador: Analizador):
         self._analizador = analizador
 
-    def removeAnalizador(self):
-        self._analizador = None
+    def removeAnalizador(self, analizador: Analizador):
+        if self._analizador == analizador:
+            self._analizador = None

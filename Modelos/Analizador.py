@@ -77,20 +77,23 @@ class Analizador:
     def addReporte(self, reporte: Reporte):
         self._reporte = reporte
 
-    def removeReporte(self):
-        self._reporte = None
+    def removeReporte(self, reporte: Reporte):
+        if self._reporte == reporte:
+            self._reporte = None
 
     def addComplejidad(self, complejidad: Complejidad):
         self._complejidad = complejidad
 
-    def removeComplejidad(self):
-        self._complejidad = None
+    def removeComplejidad(self, complejidad: Complejidad):
+        if self._complejidad == complejidad:
+            self._complejidad = None
 
     def addUsuario(self, usuario: Usuario):
         self._usuario = usuario
 
-    def removeUsuario(self):
-        self._usuario = None
+    def removeUsuario(self, usuario: Usuario):
+        if self._usuario == usuario:
+            self._usuario = None
 
     def calcular_o(self, ast: AST) -> str:
         """Calcula la cota superior asintótica (Peor Caso)."""

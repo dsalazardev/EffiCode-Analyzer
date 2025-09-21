@@ -81,25 +81,29 @@ class Algoritmo:
     def addAST(self, ast: AST):
         self._arbol_sintactico = ast
 
-    def removeAST(self):
-        self._arbol_sintactico = None
+    def removeAST(self, ast: AST):
+        if self._arbol_sintactico == ast:
+            self._arbol_sintactico = None
 
     def addReporte(self, reporte: Reporte):
         self._reporte = reporte
 
-    def removeReporte(self):
-        self._reporte = None
+    def removeReporte(self, reporte: Reporte):
+        if self._reporte == reporte:
+            self._reporte = None
 
     def addAnalizador(self, analizador: Analizador):
         self._analizador = analizador
 
-    def removeAnalizador(self):
-        self._analizador = None
+    def removeAnalizador(self, analizador: Analizador):
+        if self._analizador == analizador:
+            self._analizador = None
 
     def addUsuario(self, usuario: Usuario):
         self._usuario = usuario
 
-    def removeUsuario(self):
-        self._usuario = None
+    def removeUsuario(self, usuario: Usuario):
+        if self._usuario == usuario:
+            self._usuario = None
 
 

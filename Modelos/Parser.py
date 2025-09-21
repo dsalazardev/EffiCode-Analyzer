@@ -14,8 +14,8 @@ class Parser:
     def __init__(self, id: int, gramatica: Grammar, llm_service: LLMService):
         self._id = id
         self._gramatica = gramatica
-        self._analizador: Analizador | None = None
         self._llm_service = llm_service
+        self._analizador: Analizador | None = None
 
     @property
     def id(self) -> int:
@@ -41,7 +41,12 @@ class Parser:
     def analizador(self, value: Analizador | None):
         self._analizador = value
 
+    def addAnalizador(self, analizador: Analizador):
+        self._analizador = analizador
 
+    def removeAnalizador(self, analizador: Analizador):
+        if self._analizador == analizador:
+            self._analizador = None
 
     def validar_sintaxis(self, pseudocodigo: str) -> bool:
         """
