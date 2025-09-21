@@ -99,7 +99,7 @@ class LLMService:
             raise FileNotFoundError(f"No se encontró el libro en la ruta interna: {self._RUTA_LIBRO}")
 
         file_obj = genai.upload_file(path=self._RUTA_LIBRO)
-        print(f"✅ Libro '{file_obj.display_name}' subido con éxito.")
+        print(f"Libro '{file_obj.display_name}' subido con éxito.")
 
         cache_data = {
             "file_name": file_obj.name,

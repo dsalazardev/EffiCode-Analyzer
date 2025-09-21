@@ -5,7 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6ec8a5b5-8cf4-41b2-9957-56c2f8ae3477" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Servicios/LLMService.py" beforeDir="false" afterPath="$PROJECT_DIR$/Servicios/LLMService.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -213,7 +212,7 @@
       <workItem from="1758332397249" duration="802000" />
       <workItem from="1758333297815" duration="6565000" />
       <workItem from="1758369798008" duration="2302000" />
-      <workItem from="1758413698948" duration="4976000" />
+      <workItem from="1758413698948" duration="5533000" />
     </task>
     <servers />
   </component>
@@ -221,7 +220,7 @@
     <option name="version" value="3" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/EffiCode_Analyzer$Parser.coverage" NAME="Parser Coverage Results" MODIFIED="1758422796849" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Modelos" />
+    <SUITE FILE_PATH="coverage/EffiCode_Analyzer$Parser.coverage" NAME="Parser Coverage Results" MODIFIED="1758425994969" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Modelos" />
     <SUITE FILE_PATH="coverage/EffiCode_Analyzer$Grammar.coverage" NAME="Grammar Coverage Results" MODIFIED="1758244268085" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Modelos" />
     <SUITE FILE_PATH="coverage/EffiCode_Analyzer$Ast.coverage" NAME="Ast Coverage Results" MODIFIED="1758237512843" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Modelos" />
     <SUITE FILE_PATH="coverage/EffiCode_Analyzer$LLMService.coverage" NAME="LLMService Coverage Results" MODIFIED="1758422738272" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Servicios" />
