@@ -5,11 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6ec8a5b5-8cf4-41b2-9957-56c2f8ae3477" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Servicios/EfficiencyVisitor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Documentacion/Diagramas/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Documentacion/Proyecto/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Documentacion/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Modelos/Analizador.py" beforeDir="false" afterPath="$PROJECT_DIR$/Modelos/Analizador.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Modelos/Parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/Modelos/Parser.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Servicios/Grammar.py" beforeDir="false" afterPath="$PROJECT_DIR$/Servicios/Grammar.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cache_file.json" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
@@ -53,6 +53,7 @@
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/ESCRITORIO/ARCHIVOS/INGENIERIA EN SISTEMAS Y COMPUTACIÓN/SEMESTRE 7/ANALISIS Y DISEÑO DE ALGORITMO/PROYECTO/EffiCode Analyzer/Documentacion/Proyecto&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -64,6 +65,11 @@
   }
 }</component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\ESCRITORIO\ARCHIVOS\INGENIERIA EN SISTEMAS Y COMPUTACIÓN\SEMESTRE 7\ANALISIS Y DISEÑO DE ALGORITMO\PROYECTO\EffiCode Analyzer\Documentacion\Proyecto" />
+      <recent name="D:\ESCRITORIO\ARCHIVOS\INGENIERIA EN SISTEMAS Y COMPUTACIÓN\SEMESTRE 7\ANALISIS Y DISEÑO DE ALGORITMO\PROYECTO\EffiCode Analyzer\Documentacion\Diagramas" />
+      <recent name="D:\ESCRITORIO\ARCHIVOS\INGENIERIA EN SISTEMAS Y COMPUTACIÓN\SEMESTRE 7\ANALISIS Y DISEÑO DE ALGORITMO\PROYECTO\EffiCode Analyzer\Documentacion" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\ESCRITORIO\ARCHIVOS\INGENIERIA EN SISTEMAS Y COMPUTACIÓN\SEMESTRE 7\ANALISIS Y DISEÑO DE ALGORITMO\PROYECTO\EffiCode Analyzer\Enumerations" />
       <recent name="D:\ESCRITORIO\ARCHIVOS\INGENIERIA EN SISTEMAS Y COMPUTACIÓN\SEMESTRE 7\ANALISIS Y DISEÑO DE ALGORITMO\PROYECTO\EffiCode Analyzer\Servicios" />
@@ -198,8 +204,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-b598e85cdad2-JavaScript-PY-252.25557.178" />
-        <option value="bundled-python-sdk-ce6832f46686-7b97d883f26b-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.25557.178" />
+        <option value="bundled-js-predefined-d6986cc7102b-9c94529fcfe0-JavaScript-PY-252.26199.168" />
+        <option value="bundled-python-sdk-b3d66beaba9a-c6efb3732140-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.26199.168" />
       </set>
     </attachedChunks>
   </component>
@@ -220,6 +226,9 @@
       <workItem from="1758369798008" duration="2302000" />
       <workItem from="1758413698948" duration="7332000" />
       <workItem from="1758475582861" duration="19674000" />
+      <workItem from="1758546723113" duration="2027000" />
+      <workItem from="1758718069826" duration="532000" />
+      <workItem from="1758718803529" duration="181000" />
     </task>
     <servers />
   </component>
@@ -232,6 +241,6 @@
     <SUITE FILE_PATH="coverage/EffiCode_Analyzer$Ast.coverage" NAME="Ast Coverage Results" MODIFIED="1758237512843" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Modelos" />
     <SUITE FILE_PATH="coverage/EffiCode_Analyzer$LLMService.coverage" NAME="LLMService Coverage Results" MODIFIED="1758422738272" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Servicios" />
     <SUITE FILE_PATH="coverage/EffiCode_Analyzer$Grammar__1_.coverage" NAME="Grammar (1) Coverage Results" MODIFIED="1758258344845" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Servicios" />
-    <SUITE FILE_PATH="coverage/EffiCode_Analyzer$main.coverage" NAME="main Coverage Results" MODIFIED="1758496038687" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/EffiCode_Analyzer$main.coverage" NAME="main Coverage Results" MODIFIED="1758547137048" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

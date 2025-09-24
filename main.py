@@ -24,8 +24,8 @@ def ejecutar_analisis_completo():
         return
 
     pseudocodigo = """
-    INSERTION-SORT(A)
-        for j ← 2 to A.length do
+    INSERTION-SORT(A, n)
+        for j ← 2 to n do
             key ← A[j]
             i ← j - 1
             while i > 0 and A[i] > key do
