@@ -95,7 +95,7 @@ class Analizador:
         # Análisis de eficiencia (visitor)
         self._ultimo_analisis = self._analizar_eficiencia(algoritmo.arbol_sintactico)
         
-        # Análisis estructural del AST
+        # Análisis estructural del AST (detecta bucles, condiciones, etc.)
         estructura = self._iterative_service.analizar_estructura_ast(algoritmo.arbol_sintactico)
         self._ultimo_analisis.update(estructura)
 
@@ -103,6 +103,7 @@ class Analizador:
         t_n_mejor = self._ultimo_analisis.get("funcion_mejor_caso")
         max_profundidad = estructura.get("max_profundidad", 0)
         hay_salida_temprana = estructura.get("hay_salida_temprana", False)
+        tiene_comparacion_condicional = estructura.get("tiene_comparacion_condicional", True)
 
         # Determinar complejidades usando el servicio (ahora incluye caso promedio)
         complejidades = self._iterative_service.determinar_complejidades(max_profundidad, hay_salida_temprana)
@@ -117,7 +118,12 @@ class Analizador:
         # Generar pasos de resolución matemática (peor, mejor Y promedio)
         pasos_peor_caso = self._iterative_service.generar_pasos_peor_caso(max_profundidad)
         pasos_mejor_caso = self._iterative_service.generar_pasos_mejor_caso(max_profundidad, hay_salida_temprana)
-        pasos_caso_promedio = self._iterative_service.generar_pasos_caso_promedio(max_profundidad, hay_salida_temprana)
+        # Caso promedio ahora recibe si hay comparaciones condicionales
+        pasos_caso_promedio = self._iterative_service.generar_pasos_caso_promedio(
+            max_profundidad, 
+            hay_salida_temprana,
+            tiene_comparacion_condicional
+        )
 
         # Procesar desglose de costos para LaTeX
         raw_desglose = self._ultimo_analisis.get('desglose_costos', [])
