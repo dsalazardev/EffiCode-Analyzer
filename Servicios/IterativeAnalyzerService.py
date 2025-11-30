@@ -1,6 +1,10 @@
 """
 Servicio para análisis de complejidad de algoritmos ITERATIVOS.
 Incluye resolución paso a paso de sumatorias para justificación matemática.
+
+Basado en "Introduction to Algorithms" (Cormen et al.):
+- Capítulo 5: Análisis Probabilístico y Variables Aleatorias Indicadoras
+- Capítulo 2: Análisis de Insertion Sort (casos peor, mejor y promedio)
 """
 from __future__ import annotations
 from typing import TYPE_CHECKING, List, Dict, Any
@@ -20,6 +24,11 @@ class IterativeAnalyzerService:
     """
     Servicio especializado en análisis de algoritmos iterativos.
     Genera pasos de resolución matemática y análisis estructural del AST.
+    
+    Soporta análisis de:
+    - Peor caso (Big O): Cota superior asintótica
+    - Mejor caso (Big Ω): Cota inferior asintótica
+    - Caso promedio (Big Θ esperado): Usando análisis probabilístico
     """
 
     def __init__(self):
@@ -152,6 +161,121 @@ class IterativeAnalyzerService:
         
         return steps
 
+    def generar_pasos_caso_promedio(self, max_profundidad: int, hay_salida_temprana: bool) -> List[Dict[str, str]]:
+        """
+        Genera los pasos de resolución matemática para el CASO PROMEDIO.
+        
+        Basado en el Capítulo 5 de Cormen: Análisis Probabilístico
+        Usa Variables Aleatorias Indicadoras para calcular E[T(n)].
+        
+        Supuesto fundamental: Todas las permutaciones de entrada son equiprobables (1/n!).
+        """
+        if not sympy:
+            return []
+        
+        steps = []
+        
+        if max_profundidad == 0:
+            steps.append({
+                'step': 1,
+                'title': 'Caso Promedio - Algoritmo sin bucles',
+                'description': 'Sin bucles, todos los casos son idénticos.',
+                'latex': 'E[T(n)] = \\Theta(1)',
+                'explanation': 'El tiempo esperado es constante independiente de la entrada.'
+            })
+            
+        elif max_profundidad == 1:
+            if hay_salida_temprana:
+                steps.append({
+                    'step': 1,
+                    'title': 'Definición del modelo probabilístico',
+                    'description': 'Asumimos distribución uniforme: el elemento buscado puede estar en cualquier posición con probabilidad 1/n.',
+                    'latex': 'Pr\\{\\text{elemento en posición } i\\} = \\frac{1}{n}, \\quad \\forall i \\in [1,n]',
+                    'explanation': 'Este supuesto es fundamental para el análisis probabilístico (Cormen, Cap. 5.2).'
+                })
+                steps.append({
+                    'step': 2,
+                    'title': 'Variable aleatoria indicadora',
+                    'description': 'Sea X_i = 1 si el bucle realiza i iteraciones antes de encontrar el elemento.',
+                    'latex': 'X = \\sum_{i=1}^{n} i \\cdot Pr\\{\\text{encontrado en iteración } i\\} = \\sum_{i=1}^{n} \\frac{i}{n}',
+                    'explanation': 'Definimos la variable X como el número esperado de iteraciones.'
+                })
+                steps.append({
+                    'step': 3,
+                    'title': 'Calcular E[X] - Serie aritmética',
+                    'description': 'Aplicamos la fórmula de suma aritmética.',
+                    'latex': 'E[X] = \\frac{1}{n} \\sum_{i=1}^{n} i = \\frac{1}{n} \\cdot \\frac{n(n+1)}{2} = \\frac{n+1}{2}',
+                    'explanation': 'En promedio, encontramos el elemento en la posición (n+1)/2.'
+                })
+                steps.append({
+                    'step': 4,
+                    'title': 'Resultado final',
+                    'description': 'El caso promedio es lineal pero con constante menor.',
+                    'latex': 'E[T(n)] = \\Theta\\left(\\frac{n}{2}\\right) = \\Theta(n)',
+                    'explanation': 'Aunque es Θ(n), en promedio revisamos la mitad de los elementos.'
+                })
+            else:
+                steps.append({
+                    'step': 1,
+                    'title': 'Bucle sin salida temprana',
+                    'description': 'El bucle siempre recorre todos los elementos.',
+                    'latex': 'E[T(n)] = \\sum_{j=1}^{n} c = c \\cdot n = \\Theta(n)',
+                    'explanation': 'Sin condición de salida, mejor, peor y promedio coinciden.'
+                })
+                
+        else:  # Bucles anidados (ej. Insertion Sort)
+            steps.append({
+                'step': 1,
+                'title': 'Modelo Probabilístico (Cormen, Cap. 5.2)',
+                'description': 'Asumimos que la entrada es una permutación aleatoria uniforme. Cada una de las n! permutaciones tiene probabilidad 1/n!.',
+                'latex': 'Pr\\{\\pi\\} = \\frac{1}{n!}, \\quad \\forall \\pi \\in S_n',
+                'explanation': 'Este supuesto es la base del análisis de caso promedio (distribución uniforme sobre permutaciones).'
+            })
+            steps.append({
+                'step': 2,
+                'title': 'Variable Aleatoria Indicadora X_ij',
+                'description': 'Definimos X_ij = 1 si la operación crítica ocurre en la j-ésima iteración del bucle externo en la i-ésima del interno.',
+                'latex': 'X = \\sum_{j=2}^{n} \\sum_{i=1}^{j-1} X_{ij}, \\quad \\text{donde } E[X_{ij}] = Pr\\{X_{ij} = 1\\}',
+                'explanation': 'Descomponemos el conteo total en eventos binarios (Lema de linealidad).'
+            })
+            steps.append({
+                'step': 3,
+                'title': 'Probabilidad de comparación en Insertion Sort',
+                'description': 'Para cada j, el elemento A[j] debe compararse con ~j/2 elementos en promedio.',
+                'latex': 'E[X_j] = \\frac{1}{j} \\sum_{k=1}^{j} k = \\frac{1}{j} \\cdot \\frac{j(j+1)}{2} \\cdot \\frac{1}{2} = \\frac{j}{4}',
+                'explanation': 'En promedio, A[j] está en la posición media de los j primeros elementos ordenados.'
+            })
+            steps.append({
+                'step': 4,
+                'title': 'Sumatoria del caso promedio',
+                'description': 'Sumamos las contribuciones esperadas de cada iteración.',
+                'latex': 'E[T(n)] = \\sum_{j=2}^{n} \\frac{j-1}{2} = \\frac{1}{2} \\sum_{j=1}^{n-1} j = \\frac{(n-1)n}{4}',
+                'explanation': 'En promedio, el bucle interno hace la mitad de iteraciones que en el peor caso.'
+            })
+            steps.append({
+                'step': 5,
+                'title': 'Simplificación algebraica',
+                'description': 'Expandimos la expresión.',
+                'latex': 'E[T(n)] = \\frac{n^2 - n}{4} = \\frac{n^2}{4} - \\frac{n}{4}',
+                'explanation': 'Identificamos los términos cuadrático y lineal.'
+            })
+            steps.append({
+                'step': 6,
+                'title': 'Análisis asintótico',
+                'description': 'Determinamos el orden de crecimiento.',
+                'latex': 'E[T(n)] = \\Theta\\left(\\frac{n^2}{4}\\right) = \\Theta(n^2)',
+                'explanation': 'Las constantes no afectan el orden asintótico.'
+            })
+            steps.append({
+                'step': 7,
+                'title': 'Conclusión Caso Promedio',
+                'description': 'Aunque la constante es menor (n²/4 vs n²/2), la complejidad sigue siendo cuadrática.',
+                'latex': 'E[T(n)] = \\Theta(n^2), \\quad \\text{pero con constante } \\frac{1}{4} \\text{ vs } \\frac{1}{2}',
+                'explanation': 'El caso promedio es asintóticamente igual al peor caso, pero con factor constante menor (Cormen, Teorema 2.2).'
+            })
+        
+        return steps
+
     def generar_pasos_mejor_caso(self, max_profundidad: int, hay_salida_temprana: bool) -> List[Dict[str, str]]:
         """
         Genera los pasos de resolución matemática para el MEJOR CASO.
@@ -266,48 +390,65 @@ class IterativeAnalyzerService:
     def determinar_complejidades(self, max_profundidad: int, hay_salida_temprana: bool) -> Dict[str, str]:
         """
         Determina las complejidades basadas en la estructura de bucles.
+        Incluye caso promedio basado en análisis probabilístico.
         """
         if max_profundidad == 0:
             orden_peor_str = "1"
             orden_mejor_str = "1"
+            orden_promedio_str = "1"
         elif max_profundidad == 1:
             orden_peor_str = "n"
             orden_mejor_str = "n" if not hay_salida_temprana else "1"
+            # Caso promedio para búsqueda lineal: n/2 → O(n)
+            orden_promedio_str = "n" if not hay_salida_temprana else "n/2"
         else:
             orden_peor_str = f"n^{max_profundidad}"
             orden_mejor_str = "n" if hay_salida_temprana or max_profundidad >= 2 else f"n^{max_profundidad}"
+            # Caso promedio: n²/4 para Insertion Sort → Θ(n²)
+            orden_promedio_str = f"n^{max_profundidad}"
 
         notacion_o = f"O({orden_peor_str})"
         notacion_omega = f"Ω({orden_mejor_str})"
         
+        # Theta solo aplica cuando mejor y peor caso coinciden
         if orden_peor_str == orden_mejor_str:
             notacion_theta = f"Θ({orden_peor_str})"
         else:
             notacion_theta = "No aplicable"
+        
+        # E[T(n)] - Caso promedio esperado
+        notacion_promedio = f"E[T(n)] = Θ({orden_promedio_str})"
 
         return {
             "orden_peor_str": orden_peor_str,
             "orden_mejor_str": orden_mejor_str,
+            "orden_promedio_str": orden_promedio_str,
             "notacion_o": notacion_o,
             "notacion_omega": notacion_omega,
-            "notacion_theta": notacion_theta
+            "notacion_theta": notacion_theta,
+            "notacion_promedio": notacion_promedio
         }
 
-    def generar_justificacion(self, max_profundidad: int, notacion_o: str, notacion_omega: str) -> str:
+    def generar_justificacion(self, max_profundidad: int, notacion_o: str, notacion_omega: str, notacion_promedio: str = None) -> str:
         """
         Genera justificación textual basada en la estructura del algoritmo.
+        Incluye análisis de caso promedio basado en Cormen Cap. 5.
         """
         if max_profundidad == 0:
-            return "El algoritmo no contiene bucles iterativos, por lo que su tiempo de ejecución es constante O(1)."
+            return "El algoritmo no contiene bucles iterativos, por lo que su tiempo de ejecución es constante O(1). Mejor, peor y caso promedio son idénticos."
         elif max_profundidad == 1:
-            return f"El algoritmo contiene un bucle simple que itera sobre los elementos de entrada, resultando en complejidad lineal {notacion_o}."
+            base = f"El algoritmo contiene un bucle simple que itera sobre los elementos de entrada, resultando en complejidad lineal {notacion_o}."
+            promedio = " En el caso promedio, asumiendo distribución uniforme, el elemento se encuentra en la posición n/2, pero asintóticamente sigue siendo Θ(n)."
+            return base + promedio
         else:
             return (
                 f"El algoritmo contiene bucles anidados con profundidad {max_profundidad}. "
-                f"En el peor caso (ej. array en orden inverso), el bucle interno se ejecuta O(n) veces "
+                f"**Peor caso** (ej. array en orden inverso): el bucle interno se ejecuta O(n) veces "
                 f"por cada iteración del bucle externo, resultando en {notacion_o}. "
-                f"En el mejor caso (ej. array ya ordenado), el bucle interno puede ejecutarse "
-                f"en tiempo constante por iteración, resultando en {notacion_omega}."
+                f"**Mejor caso** (ej. array ya ordenado): el bucle interno se ejecuta en tiempo constante por iteración, resultando en {notacion_omega}. "
+                f"**Caso promedio** (Cormen, Cap. 5): Asumiendo que todas las permutaciones son equiprobables (1/n!), "
+                f"el bucle interno hace aproximadamente (j-1)/2 iteraciones por cada j, "
+                f"resultando en E[T(n)] = n²/4 = Θ(n²). La constante es menor pero el orden es el mismo que el peor caso."
             )
 
     def procesar_desglose_costos(self, raw_desglose: List) -> List[Dict[str, Any]]:

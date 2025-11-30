@@ -104,17 +104,20 @@ class Analizador:
         max_profundidad = estructura.get("max_profundidad", 0)
         hay_salida_temprana = estructura.get("hay_salida_temprana", False)
 
-        # Determinar complejidades usando el servicio
+        # Determinar complejidades usando el servicio (ahora incluye caso promedio)
         complejidades = self._iterative_service.determinar_complejidades(max_profundidad, hay_salida_temprana)
         notacion_o = complejidades["notacion_o"]
         notacion_omega = complejidades["notacion_omega"]
         notacion_theta = complejidades["notacion_theta"]
+        notacion_promedio = complejidades["notacion_promedio"]
         orden_peor_str = complejidades["orden_peor_str"]
         orden_mejor_str = complejidades["orden_mejor_str"]
+        orden_promedio_str = complejidades["orden_promedio_str"]
 
-        # Generar pasos de resolución matemática
+        # Generar pasos de resolución matemática (peor, mejor Y promedio)
         pasos_peor_caso = self._iterative_service.generar_pasos_peor_caso(max_profundidad)
         pasos_mejor_caso = self._iterative_service.generar_pasos_mejor_caso(max_profundidad, hay_salida_temprana)
+        pasos_caso_promedio = self._iterative_service.generar_pasos_caso_promedio(max_profundidad, hay_salida_temprana)
 
         # Procesar desglose de costos para LaTeX
         raw_desglose = self._ultimo_analisis.get('desglose_costos', [])
@@ -124,8 +127,10 @@ class Analizador:
         worst_case_func_str = self._iterative_service.formatear_funcion_latex(t_n_peor)
         best_case_func_str = self._iterative_service.formatear_funcion_latex(t_n_mejor)
 
-        # Generar justificación basada en la estructura
-        justificacion = self._iterative_service.generar_justificacion(max_profundidad, notacion_o, notacion_omega)
+        # Generar justificación basada en la estructura (ahora incluye caso promedio)
+        justificacion = self._iterative_service.generar_justificacion(
+            max_profundidad, notacion_o, notacion_omega, notacion_promedio
+        )
 
         justification_data = {
             'worst_case_function': worst_case_func_str,
@@ -133,14 +138,20 @@ class Analizador:
             'line_costs': line_costs,
             'resolution_steps': {
                 'worst_case': pasos_peor_caso,
-                'best_case': pasos_mejor_caso
+                'best_case': pasos_mejor_caso,
+                'average_case': pasos_caso_promedio  # NUEVO: pasos del caso promedio
             },
             'conclusion': {
                 'worst_case': {'dominant_term': orden_peor_str, 'complexity': notacion_o},
                 'best_case': {'dominant_term': orden_mejor_str, 'complexity': notacion_omega},
                 'average_case': {
-                    'complexity': notacion_theta, 
-                    'description': f"El caso promedio tiende a {notacion_o}" if notacion_theta == "No aplicable" else notacion_theta
+                    'complexity': notacion_promedio,
+                    'dominant_term': orden_promedio_str,
+                    'description': (
+                        f"Usando análisis probabilístico (Cormen Cap. 5): "
+                        f"Asumiendo distribución uniforme de entradas, "
+                        f"el tiempo esperado es {notacion_promedio}."
+                    )
                 }
             }
         }
@@ -162,6 +173,7 @@ class Analizador:
         """
         Analiza algoritmos RECURSIVOS usando LLM para resolver ecuaciones de recurrencia.
         Delega la lógica al servicio especializado RecursiveAnalyzerService.
+        Incluye análisis de caso promedio basado en Cormen Cap. 5 y 7.
         """
         if not algoritmo.arbol_sintactico:
             raise ValueError("El algoritmo no tiene un AST. Ejecute el parser primero.")
@@ -172,23 +184,63 @@ class Analizador:
         # 1. Generar ecuación de recurrencia
         analisis_recurrencia = self._recursive_service.generar_ecuacion_recurrencia(algoritmo.arbol_sintactico)
         
-        # 2. Usar LLM para resolver la ecuación
+        # 2. Usar LLM para resolver la ecuación (ahora incluye caso promedio)
         solucion_llm = self._recursive_service.resolver_recurrencia_con_llm(
             analisis_recurrencia["ecuacion"],
             analisis_recurrencia["patron"],
             algoritmo.codigo_fuente
         )
         
-        # 3. Generar justificación combinada
+        # 3. Generar pasos del caso promedio para algoritmos recursivos
+        pasos_caso_promedio = self._recursive_service.generar_pasos_caso_promedio_recursivo(
+            analisis_recurrencia["patron"]
+        )
+        
+        # 4. Generar justificación combinada (incluye caso promedio)
         justificacion = self._recursive_service.generar_justificacion_combinada(analisis_recurrencia, solucion_llm)
         
-        # 4. Crear objeto Complejidad
+        # 5. Extraer información de caso promedio
+        caso_promedio = solucion_llm.get('caso_promedio', {})
+        
+        # 6. Construir justification_data con caso promedio
+        justification_data = {
+            'recurrence_equation': analisis_recurrencia['ecuacion'],
+            'recursion_type': analisis_recurrencia['patron']['tipo'],
+            'resolution_steps': {
+                'worst_case': [],  # Los pasos se incluyen en la justificación textual
+                'best_case': [],
+                'average_case': pasos_caso_promedio
+            },
+            'conclusion': {
+                'worst_case': {
+                    'dominant_term': solucion_llm.get('notacion_o', 'O(n)').replace('O(', '').replace(')', ''),
+                    'complexity': solucion_llm.get('notacion_o', 'O(n)')
+                },
+                'best_case': {
+                    'dominant_term': solucion_llm.get('notacion_omega', 'Ω(1)').replace('Ω(', '').replace(')', ''),
+                    'complexity': solucion_llm.get('notacion_omega', 'Ω(1)')
+                },
+                'average_case': {
+                    'complexity': caso_promedio.get('notacion', solucion_llm.get('notacion_theta', 'Θ(n)')),
+                    'dominant_term': caso_promedio.get('notacion', 'n').replace('E[T(n)] = Θ(', '').replace(')', ''),
+                    'description': (
+                        f"Distribución asumida: {caso_promedio.get('distribucion_asumida', 'N/A')}. "
+                        f"Factor constante: {caso_promedio.get('constante_factor', 'N/A')}"
+                    )
+                }
+            },
+            'method_used': solucion_llm.get('metodo_utilizado', 'Análisis de Recurrencias'),
+            'references': solucion_llm.get('referencias', 'Cormen et al.')
+        }
+        
+        # 7. Crear objeto Complejidad con justification_data
         complejidad = Complejidad(
             id=algoritmo.id,
             notacion_o=solucion_llm.get('notacion_o', 'O(n)'),
             notacion_omega=solucion_llm.get('notacion_omega', 'Ω(1)'),
             notacion_theta=solucion_llm.get('notacion_theta', 'Θ(n)'),
-            justificacion=justificacion
+            justificacion=justificacion,
+            justification_data=justification_data
         )
 
         complejidad.analizador = self

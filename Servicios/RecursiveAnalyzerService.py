@@ -1,9 +1,14 @@
 """
 Servicio para análisis de complejidad de algoritmos RECURSIVOS.
 Detecta patrones de recursión y genera ecuaciones de recurrencia.
+
+Basado en "Introduction to Algorithms" (Cormen et al.):
+- Capítulo 4: Divide y Vencerás, Recurrencias
+- Capítulo 7: Quicksort (análisis de caso promedio con variables indicadoras)
+- Capítulo 5: Análisis Probabilístico
 """
 from __future__ import annotations
-from typing import TYPE_CHECKING, Dict, Any
+from typing import TYPE_CHECKING, Dict, Any, List
 import ast
 import json
 
@@ -17,6 +22,11 @@ class RecursiveAnalyzerService:
     Servicio especializado en análisis de algoritmos recursivos.
     Detecta patrones de recursión, genera ecuaciones de recurrencia
     y utiliza LLM para resolver las ecuaciones.
+    
+    Soporta análisis de caso promedio para:
+    - Quicksort (Θ(n lg n) promedio vs Θ(n²) peor caso)
+    - Algoritmos divide y vencerás con pivote aleatorio
+    - Recurrencias con división aleatoria
     """
 
     def __init__(self, llm_service: 'LLMService' = None):
@@ -346,6 +356,118 @@ class RecursiveAnalyzerService:
             "hay_salida_temprana": hay_salida_temprana
         }
 
+    def generar_pasos_caso_promedio_recursivo(self, patron: Dict[str, Any]) -> List[Dict[str, str]]:
+        """
+        Genera los pasos de resolución para el CASO PROMEDIO de algoritmos recursivos.
+        
+        Basado en Cormen Cap. 7.4.2 (Quicksort) y Cap. 5 (Análisis Probabilístico).
+        Usa variables aleatorias indicadoras para contar comparaciones esperadas.
+        """
+        tipo = patron.get("tipo", "recursion_general")
+        steps = []
+        
+        if tipo == "recursion_binaria":
+            # Análisis estilo Quicksort (Cormen 7.4.2)
+            steps.append({
+                'step': 1,
+                'title': 'Modelo Probabilístico (Cormen, Cap. 7.4)',
+                'description': 'Asumimos que el pivote se elige aleatoriamente o que la entrada es una permutación aleatoria uniforme.',
+                'latex': 'Pr\\{\\text{pivote en posición } q\\} = \\frac{1}{n}, \\quad \\forall q \\in [0, n-1]',
+                'explanation': 'Esta es la base del análisis aleatorizado de Quicksort.'
+            })
+            steps.append({
+                'step': 2,
+                'title': 'Variable Indicadora X_ij',
+                'description': 'Sea z₁,...,zₙ los elementos ordenados. X_ij = 1 si zᵢ se compara con zⱼ.',
+                'latex': 'X = \\sum_{i=1}^{n-1} \\sum_{j=i+1}^{n} X_{ij}',
+                'explanation': 'Contamos comparaciones usando indicadoras (Cormen, Sección 7.4.2).'
+            })
+            steps.append({
+                'step': 3,
+                'title': 'Probabilidad de comparación',
+                'description': 'zᵢ y zⱼ se comparan solo si uno es elegido como pivote antes que cualquier elemento entre ellos.',
+                'latex': 'Pr\\{z_i \\text{ comparado con } z_j\\} = \\frac{2}{j - i + 1}',
+                'explanation': 'De los j-i+1 elementos en {zᵢ,...,zⱼ}, solo zᵢ o zⱼ causan la comparación.'
+            })
+            steps.append({
+                'step': 4,
+                'title': 'Esperanza por linealidad',
+                'description': 'Aplicamos linealidad de la esperanza: E[X] = ΣE[X_ij].',
+                'latex': 'E[X] = \\sum_{i=1}^{n-1} \\sum_{j=i+1}^{n} \\frac{2}{j-i+1} = \\sum_{i=1}^{n-1} \\sum_{k=1}^{n-i} \\frac{2}{k+1}',
+                'explanation': 'Sustituimos k = j - i para simplificar la sumatoria.'
+            })
+            steps.append({
+                'step': 5,
+                'title': 'Simplificación con serie armónica',
+                'description': 'La suma interna está acotada por la serie armónica.',
+                'latex': 'E[X] < \\sum_{i=1}^{n-1} \\sum_{k=1}^{n} \\frac{2}{k} = 2(n-1) \\cdot H_n \\approx 2(n-1)\\ln n',
+                'explanation': 'H_n = Σ(1/k) ≈ ln(n) + γ (constante de Euler-Mascheroni).'
+            })
+            steps.append({
+                'step': 6,
+                'title': 'Conclusión Caso Promedio',
+                'description': 'El número esperado de comparaciones es O(n lg n).',
+                'latex': 'E[T(n)] = \\Theta(n \\lg n)',
+                'explanation': 'A pesar de que el peor caso es Θ(n²), el caso promedio es Θ(n lg n).'
+            })
+            
+        elif tipo == "recursion_exponencial_fibonacci":
+            steps.append({
+                'step': 1,
+                'title': 'Caso Promedio = Peor Caso para Fibonacci',
+                'description': 'En Fibonacci recursivo, no hay aleatorización posible.',
+                'latex': 'T(n) = T(n-1) + T(n-2) + \\Theta(1)',
+                'explanation': 'La estructura del problema es determinista.'
+            })
+            steps.append({
+                'step': 2,
+                'title': 'Todos los casos son idénticos',
+                'description': 'El árbol de recursión siempre tiene la misma forma para un n dado.',
+                'latex': 'E[T(n)] = T_{\\text{peor}}(n) = T_{\\text{mejor}}(n) = \\Theta(\\phi^n)',
+                'explanation': 'No hay variabilidad en la entrada que afecte el tiempo de ejecución.'
+            })
+            
+        elif tipo == "recursion_lineal":
+            steps.append({
+                'step': 1,
+                'title': 'Recursión lineal T(n-1)',
+                'description': 'El algoritmo reduce el problema en 1 unidad por cada llamada.',
+                'latex': 'T(n) = T(n-1) + O(f(n))',
+                'explanation': 'Ejemplos: factorial, suma de lista, búsqueda lineal recursiva.'
+            })
+            steps.append({
+                'step': 2,
+                'title': 'Caso promedio con trabajo constante',
+                'description': 'Si f(n) = O(1), el tiempo esperado es lineal.',
+                'latex': 'E[T(n)] = \\sum_{i=1}^{n} O(1) = \\Theta(n)',
+                'explanation': 'Cada nivel de recursión contribuye trabajo constante.'
+            })
+            steps.append({
+                'step': 3,
+                'title': 'Conclusión',
+                'description': 'Para recursión lineal, todos los casos son típicamente iguales.',
+                'latex': 'E[T(n)] = O(T(n)) = \\Omega(T(n)) = \\Theta(n)',
+                'explanation': 'No hay aleatorización en la estructura de la recursión.'
+            })
+            
+        else:
+            steps.append({
+                'step': 1,
+                'title': 'Análisis de recurrencia general',
+                'description': 'Para determinar el caso promedio, debemos identificar la fuente de aleatoriedad.',
+                'latex': 'E[T(n)] = \\frac{1}{n}\\sum_{q=0}^{n-1} (T(q) + T(n-q-1)) + \\Theta(f(n))',
+                'explanation': 'Esta es la recurrencia "promediada" cuando la división es aleatoria.'
+            })
+            steps.append({
+                'step': 2,
+                'title': 'Método de análisis',
+                'description': 'Usar el método de sustitución o generación de funciones.',
+                'latex': '\\text{Se requiere análisis específico según el patrón}',
+                'explanation': 'Consulte Cormen, Capítulo 4 para técnicas de resolución.'
+            })
+        
+        return steps
+
     def _buscar_evidencia_operacion_lineal(self, ast_obj: 'AST') -> bool:
         """
         Busca evidencia de operaciones O(n) como 'merge'.
@@ -365,6 +487,7 @@ class RecursiveAnalyzerService:
     def resolver_recurrencia_con_llm(self, ecuacion: str, patron: Dict[str, Any], pseudocodigo: str) -> Dict[str, Any]:
         """
         Usa LLM para resolver la ecuación de recurrencia de manera precisa.
+        Incluye análisis de caso promedio usando variables indicadoras.
         """
         if not self._llm_service:
             return self.resolver_recurrencia_local(ecuacion, patron)
@@ -387,19 +510,30 @@ Ecuación de recurrencia generada:
 
 Instrucciones:
 1. Resuelve la ecuación de recurrencia usando los métodos apropiados (Teorema Maestro, sustitución, árbol de recursión)
-2. Proporciona las cotas asintóticas EXACTAS (O, Ω, Θ) basadas en el análisis formal
-3. Incluye referencias específicas a "Introduction to Algorithms" (capítulo, sección, página)
-4. Para Fibonacci, usa la notación exacta Θ(φⁿ) donde φ es la razón áurea
-5. Justifica matemáticamente cada paso
+2. Proporciona las cotas asintóticas EXACTAS para:
+   - **Peor caso (O)**: cota superior
+   - **Mejor caso (Ω)**: cota inferior  
+   - **Caso promedio (E[T(n)])**: usando análisis probabilístico con variables aleatorias indicadoras
+3. Para el CASO PROMEDIO (Capítulo 5 y 7 de Cormen):
+   - Define la distribución de probabilidad asumida (ej. permutaciones uniformes)
+   - Usa variables indicadoras X_ij para contar operaciones
+   - Aplica E[X] = Σ E[X_i] (linealidad de la esperanza)
+4. Incluye referencias específicas a "Introduction to Algorithms" (capítulo, sección)
+5. Para Quicksort, el caso promedio es Θ(n lg n) aunque el peor sea Θ(n²)
 
 Formato de respuesta JSON:
 {{
     "notacion_o": "O(...)",
     "notacion_omega": "Ω(...)",
     "notacion_theta": "Θ(...)",
-    "justificacion_matematica": "Explicación detallada...",
-    "referencias": "Capítulo X, Sección Y, página Z",
-    "metodo_utilizado": "Teorema Maestro/Método de Sustitución/Árbol de Recursión"
+    "caso_promedio": {{
+        "notacion": "E[T(n)] = Θ(...)",
+        "distribucion_asumida": "Descripción de la distribución probabilística",
+        "constante_factor": "Factor constante si aplica (ej. n²/4 vs n²/2)"
+    }},
+    "justificacion_matematica": "Explicación detallada incluyendo caso promedio...",
+    "referencias": "Capítulo X, Sección Y",
+    "metodo_utilizado": "Teorema Maestro/Método de Sustitución/Variables Indicadoras"
 }}
 
 Responde ÚNICAMENTE con el JSON válido, sin texto adicional.
@@ -428,6 +562,7 @@ Responde ÚNICAMENTE con el JSON válido, sin texto adicional.
     def resolver_recurrencia_local(self, ecuacion: str, patron: Dict[str, Any]) -> Dict[str, Any]:
         """
         Fallback: Resuelve la recurrencia con lógica local cuando el LLM falla.
+        Incluye análisis de caso promedio basado en Cormen.
         """
         tipo_recursion = patron["tipo"]
 
@@ -436,25 +571,47 @@ Responde ÚNICAMENTE con el JSON válido, sin texto adicional.
                 "notacion_o": "O(2^n)",
                 "notacion_omega": "Ω(φ^n)",
                 "notacion_theta": "Θ(φ^n)",
-                "justificacion_matematica": "Ecuación de Fibonacci: T(n) = T(n-1) + T(n-2) + O(1). Solución exacta: Θ(φ^n) donde φ ≈ 1.618. O(2^n) es cota superior conservadora.",
+                "caso_promedio": {
+                    "notacion": "E[T(n)] = Θ(φ^n)",
+                    "distribucion_asumida": "No aplica - estructura determinista",
+                    "constante_factor": "Mismo para todos los casos"
+                },
+                "justificacion_matematica": "Ecuación de Fibonacci: T(n) = T(n-1) + T(n-2) + O(1). Solución exacta: Θ(φ^n) donde φ ≈ 1.618. **Caso promedio**: No hay aleatorización posible; el árbol de recursión es idéntico para cada n.",
                 "referencias": "Capítulo 27, Sección 27.1",
                 "metodo_utilizado": "Ecuación Característica"
             }
         elif tipo_recursion == "recursion_binaria":
             return {
-                "notacion_o": "O(n log n)",
-                "notacion_omega": "Ω(n log n)", 
-                "notacion_theta": "Θ(n log n)",
-                "justificacion_matematica": "T(n) = 2T(n/2) + O(n). Caso 2 del Teorema Maestro: f(n) = Θ(n^(log₂2)) = Θ(n), por tanto T(n) = Θ(n log n).",
-                "referencias": "Capítulo 4, Sección 4.5",
-                "metodo_utilizado": "Teorema Maestro"
+                "notacion_o": "O(n²)",  # Peor caso (pivote siempre mínimo/máximo)
+                "notacion_omega": "Ω(n log n)",  # Mejor caso (división perfecta)
+                "notacion_theta": "Θ(n log n)",  # Caso promedio
+                "caso_promedio": {
+                    "notacion": "E[T(n)] = Θ(n lg n)",
+                    "distribucion_asumida": "Permutaciones uniformes (cada permutación tiene probabilidad 1/n!)",
+                    "constante_factor": "≈ 1.39n lg n comparaciones esperadas"
+                },
+                "justificacion_matematica": (
+                    "**Análisis de Quicksort (Cormen 7.4.2):**\n"
+                    "- Peor caso: O(n²) cuando el pivote siempre es el mínimo/máximo\n"
+                    "- Mejor caso: Ω(n lg n) con división perfecta T(n) = 2T(n/2) + Θ(n)\n"
+                    "- **Caso promedio**: Usando variables indicadoras X_ij:\n"
+                    "  E[comparaciones] = Σᵢ Σⱼ₌ᵢ₊₁ 2/(j-i+1) ≈ 2n ln n = Θ(n lg n)\n"
+                    "  El factor constante es ≈1.39 (vs 1.0 en Mergesort)"
+                ),
+                "referencias": "Capítulo 7, Sección 7.4.2 (Análisis con Variables Indicadoras)",
+                "metodo_utilizado": "Variables Aleatorias Indicadoras + Linealidad de Esperanza"
             }
         elif tipo_recursion == "recursion_lineal":
             return {
                 "notacion_o": "O(n)",
                 "notacion_omega": "Ω(n)",
                 "notacion_theta": "Θ(n)", 
-                "justificacion_matematica": "T(n) = T(n-1) + O(1). Expansión: T(n) = T(0) + n*c = Θ(n).",
+                "caso_promedio": {
+                    "notacion": "E[T(n)] = Θ(n)",
+                    "distribucion_asumida": "No aplica - recursión determinista",
+                    "constante_factor": "Mismo para todos los casos"
+                },
+                "justificacion_matematica": "T(n) = T(n-1) + O(1). Expansión: T(n) = T(0) + n*c = Θ(n). **Caso promedio**: La estructura de recursión lineal es determinista; todos los casos coinciden.",
                 "referencias": "Capítulo 4, Sección 4.3",
                 "metodo_utilizado": "Método de Sustitución"
             }
@@ -463,16 +620,24 @@ Responde ÚNICAMENTE con el JSON válido, sin texto adicional.
                 "notacion_o": "O(n)",
                 "notacion_omega": "Ω(1)", 
                 "notacion_theta": "Complejidad variable",
-                "justificacion_matematica": f"Análisis de recurrencia: {ecuacion}. Se requiere análisis específico para determinar cotas exactas.",
-                "referencias": "Capítulo 4",
+                "caso_promedio": {
+                    "notacion": "Requiere análisis específico",
+                    "distribucion_asumida": "Depende del algoritmo",
+                    "constante_factor": "N/A"
+                },
+                "justificacion_matematica": f"Análisis de recurrencia: {ecuacion}. Se requiere análisis específico para determinar cotas exactas y caso promedio.",
+                "referencias": "Capítulo 4 y 5",
                 "metodo_utilizado": "Análisis General"
             }
 
     def generar_justificacion_combinada(self, analisis_recurrencia: Dict[str, Any], solucion_llm: Dict[str, Any]) -> str:
         """
         Genera la justificación combinada para el análisis recursivo.
+        Incluye análisis de caso promedio basado en Cormen Cap. 5 y 7.
         """
-        return (
+        caso_promedio = solucion_llm.get('caso_promedio', {})
+        
+        base = (
             f"**ANÁLISIS DE ALGORITMO RECURSIVO**\n\n"
             f"**Tipo de Recursión Detectada:** {analisis_recurrencia['patron']['tipo'].replace('_', ' ').title()}\n"
             f"**Ecuación de Recurrencia:** {analisis_recurrencia['ecuacion']}\n"
@@ -481,6 +646,20 @@ Responde ÚNICAMENTE con el JSON válido, sin texto adicional.
             f"- Subproblemas (a): {analisis_recurrencia['a']}\n"
             f"- Factor de división (b): {analisis_recurrencia['b']}\n"
             f"- Trabajo no recursivo: O({analisis_recurrencia['f_n']})\n\n"
+        )
+        
+        caso_promedio_str = ""
+        if caso_promedio:
+            caso_promedio_str = (
+                f"**ANÁLISIS DE CASO PROMEDIO (Cormen, Cap. 5 y 7):**\n"
+                f"- Complejidad esperada: {caso_promedio.get('notacion', 'N/A')}\n"
+                f"- Distribución asumida: {caso_promedio.get('distribucion_asumida', 'N/A')}\n"
+                f"- Factor constante: {caso_promedio.get('constante_factor', 'N/A')}\n\n"
+            )
+        
+        return (
+            base +
+            caso_promedio_str +
             f"**Resolución Matemática:**\n{solucion_llm['justificacion_matematica']}\n\n"
             f"**Referencia:** {solucion_llm['referencias']} - Introduction to Algorithms"
         )
