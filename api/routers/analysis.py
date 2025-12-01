@@ -3,15 +3,18 @@ Router para el módulo de análisis de complejidad algorítmica.
 Contiene todos los endpoints relacionados con el análisis de pseudocódigo.
 """
 import base64
+import json
 import pydot
 from fastapi import APIRouter, HTTPException, Depends
+from fastapi.responses import Response, JSONResponse
 
 from Modelos.Algoritmo import Algoritmo
 from Modelos.Reporte import Reporte
 from Enumerations.tipoAlgoritmo import TipoAlgoritmo
+from Servicios.ReportService import ReportService
 
 from ..deps import get_services, ServiceContainer
-from ..schemas.analysis import AnalysisRequest, AnalysisResponse
+from ..schemas.analysis import AnalysisRequest, AnalysisResponse, ReportRequest
 
 
 router = APIRouter(
@@ -192,3 +195,94 @@ async def health_check(
             "llm_service": services.llm_service is not None
         }
     }
+
+
+# === ENDPOINTS DE REPORTES ===
+
+# Instancia del servicio de reportes
+_report_service = ReportService()
+
+
+@router.post(
+    "/report/pdf",
+    summary="Generar reporte PDF",
+    description="Genera un reporte PDF completo del análisis de complejidad"
+)
+async def generate_pdf_report(request: ReportRequest):
+    """
+    Genera un reporte PDF descargable con el análisis completo.
+    
+    Incluye:
+    - Código fuente analizado
+    - Tabla de complejidades (O, Ω, Θ, E[T(n)])
+    - Pasos de resolución matemática
+    - Costos por línea de código
+    
+    Returns:
+        Response con el archivo PDF
+    """
+    try:
+        pdf_bytes = _report_service.generar_pdf(
+            analysis_data=request.analysis_data,
+            pseudocode=request.pseudocode
+        )
+        
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": "attachment; filename=reporte_complejidad.pdf"
+            }
+        )
+    
+    except ImportError as e:
+        raise HTTPException(
+            status_code=501, 
+            detail="Generación de PDF no disponible. Instale reportlab: pip install reportlab"
+        )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error generando PDF: {str(e)}")
+
+
+@router.post(
+    "/report/json",
+    summary="Generar reporte JSON",
+    description="Genera un reporte JSON estructurado del análisis de complejidad"
+)
+async def generate_json_report(request: ReportRequest):
+    """
+    Genera un reporte JSON estructurado con el análisis completo.
+    
+    El JSON incluye:
+    - Metadatos del reporte
+    - Código fuente
+    - Todas las complejidades
+    - Pasos de resolución detallados
+    - Costos por línea
+    
+    Returns:
+        JSONResponse con el reporte estructurado
+    """
+    try:
+        report_data = _report_service.generar_json(
+            analysis_data=request.analysis_data,
+            pseudocode=request.pseudocode
+        )
+        
+        # Convertir a JSON con formato bonito
+        json_str = json.dumps(report_data, ensure_ascii=False, indent=2)
+        
+        return Response(
+            content=json_str,
+            media_type="application/json",
+            headers={
+                "Content-Disposition": "attachment; filename=reporte_complejidad.json"
+            }
+        )
+    
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error generando JSON: {str(e)}")

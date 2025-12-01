@@ -3,7 +3,7 @@ Schemas para el módulo de análisis de complejidad.
 Incluye soporte para caso promedio basado en Cormen Cap. 5.
 """
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Literal
 
 
 class AnalysisRequest(BaseModel):
@@ -26,6 +26,35 @@ class AnalysisRequest(BaseModel):
             i ← i - 1
         A[i + 1] ← key
     return A"""
+            }
+        }
+
+
+class ReportRequest(BaseModel):
+    """Request para generar reporte de análisis."""
+    pseudocode: str = Field(
+        ..., 
+        description="Pseudocódigo analizado",
+        min_length=1
+    )
+    analysis_data: Dict[str, Any] = Field(
+        ...,
+        description="Datos del análisis de complejidad"
+    )
+    format: Literal["pdf", "json"] = Field(
+        default="pdf",
+        description="Formato del reporte: 'pdf' o 'json'"
+    )
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "pseudocode": "INSERTION-SORT(A, n)...",
+                "analysis_data": {
+                    "complexity": {"bigO": "O(n²)"},
+                    "justification": {}
+                },
+                "format": "pdf"
             }
         }
 
