@@ -68,9 +68,9 @@ class ReportService:
             textColor=colors.HexColor('#0f3460')
         ))
         
-        # Estilo para texto normal
+        # Estilo para texto normal (usar nombre único)
         self._styles.add(ParagraphStyle(
-            name='BodyText',
+            name='ReportBody',
             parent=self._styles['Normal'],
             fontSize=10,
             spaceAfter=6,
@@ -79,7 +79,7 @@ class ReportService:
         
         # Estilo para código
         self._styles.add(ParagraphStyle(
-            name='Code',
+            name='ReportCode',
             parent=self._styles['Normal'],
             fontName='Courier',
             fontSize=9,
@@ -91,7 +91,7 @@ class ReportService:
         
         # Estilo para fórmulas matemáticas
         self._styles.add(ParagraphStyle(
-            name='Formula',
+            name='ReportFormula',
             parent=self._styles['Normal'],
             fontName='Courier',
             fontSize=11,
@@ -103,7 +103,7 @@ class ReportService:
         
         # Estilo para el pie de página
         self._styles.add(ParagraphStyle(
-            name='Footer',
+            name='ReportFooter',
             parent=self._styles['Normal'],
             fontSize=8,
             alignment=TA_CENTER,
@@ -236,7 +236,7 @@ class ReportService:
         fecha = datetime.now().strftime("%d de %B de %Y, %H:%M")
         story.append(Paragraph(
             f"<b>Fecha de generación:</b> {fecha}",
-            self._styles['BodyText']
+            self._styles['ReportBody']
         ))
         story.append(Spacer(1, 1*inch))
         
@@ -246,7 +246,7 @@ class ReportService:
         
         # Mostrar código línea por línea
         for line in pseudocode.split('\n'):
-            story.append(Paragraph(line or "&nbsp;", self._styles['Code']))
+            story.append(Paragraph(line or "&nbsp;", self._styles['ReportCode']))
         
         story.append(Spacer(1, 0.3*inch))
         
@@ -300,15 +300,15 @@ class ReportService:
                     self._styles['SubSection']
                 ))
                 if paso.get('description'):
-                    story.append(Paragraph(paso['description'], self._styles['BodyText']))
+                    story.append(Paragraph(paso['description'], self._styles['ReportBody']))
                 if paso.get('latex'):
                     # Convertir LaTeX a texto legible
                     latex_text = self._latex_to_text(paso['latex'])
-                    story.append(Paragraph(f"<font color='#1565c0'>{latex_text}</font>", self._styles['Formula']))
+                    story.append(Paragraph(f"<font color='#1565c0'>{latex_text}</font>", self._styles['ReportFormula']))
                 if paso.get('explanation'):
                     story.append(Paragraph(
                         f"<i>{paso['explanation']}</i>",
-                        self._styles['BodyText']
+                        self._styles['ReportBody']
                     ))
                 story.append(Spacer(1, 0.1*inch))
         
@@ -325,14 +325,14 @@ class ReportService:
                     self._styles['SubSection']
                 ))
                 if paso.get('description'):
-                    story.append(Paragraph(paso['description'], self._styles['BodyText']))
+                    story.append(Paragraph(paso['description'], self._styles['ReportBody']))
                 if paso.get('latex'):
                     latex_text = self._latex_to_text(paso['latex'])
-                    story.append(Paragraph(f"<font color='#2e7d32'>{latex_text}</font>", self._styles['Formula']))
+                    story.append(Paragraph(f"<font color='#2e7d32'>{latex_text}</font>", self._styles['ReportFormula']))
                 if paso.get('explanation'):
                     story.append(Paragraph(
                         f"<i>{paso['explanation']}</i>",
-                        self._styles['BodyText']
+                        self._styles['ReportBody']
                     ))
                 story.append(Spacer(1, 0.1*inch))
         
@@ -345,7 +345,7 @@ class ReportService:
             story.append(Spacer(1, 0.2*inch))
             story.append(Paragraph(
                 "Análisis probabilístico usando Variables Aleatorias Indicadoras.",
-                self._styles['BodyText']
+                self._styles['ReportBody']
             ))
             story.append(Spacer(1, 0.1*inch))
             
@@ -355,14 +355,14 @@ class ReportService:
                     self._styles['SubSection']
                 ))
                 if paso.get('description'):
-                    story.append(Paragraph(paso['description'], self._styles['BodyText']))
+                    story.append(Paragraph(paso['description'], self._styles['ReportBody']))
                 if paso.get('latex'):
                     latex_text = self._latex_to_text(paso['latex'])
-                    story.append(Paragraph(f"<font color='#7b1fa2'>{latex_text}</font>", self._styles['Formula']))
+                    story.append(Paragraph(f"<font color='#7b1fa2'>{latex_text}</font>", self._styles['ReportFormula']))
                 if paso.get('explanation'):
                     story.append(Paragraph(
                         f"<i>{paso['explanation']}</i>",
-                        self._styles['BodyText']
+                        self._styles['ReportBody']
                     ))
                 story.append(Spacer(1, 0.1*inch))
         
@@ -405,15 +405,15 @@ class ReportService:
         story.append(Spacer(1, 0.5*inch))
         story.append(Paragraph(
             "─" * 60,
-            self._styles['Footer']
+            self._styles['ReportFooter']
         ))
         story.append(Paragraph(
             "Generado por EffiCode Analyzer © 2025 - Análisis y Diseño de Algoritmos",
-            self._styles['Footer']
+            self._styles['ReportFooter']
         ))
         story.append(Paragraph(
             "Basado en 'Introduction to Algorithms' de Cormen, Leiserson, Rivest y Stein",
-            self._styles['Footer']
+            self._styles['ReportFooter']
         ))
         
         # Construir PDF
