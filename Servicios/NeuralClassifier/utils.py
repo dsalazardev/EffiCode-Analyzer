@@ -3,11 +3,17 @@ Funciones auxiliares para el sistema Neural Algorithmix.
 
 Dataset de entrenamiento en pseudocodigo estilo Cormen.
 El Parser traduce Cormen -> Python antes de entrenar.
+
+ARCHIVO DE DATOS: Documentos/training_algorithms.json
 """
 
 import json
 from typing import List, Dict, Any, Optional
 from pathlib import Path
+
+
+# Ruta al archivo de algoritmos de entrenamiento
+TRAINING_DATA_PATH = Path(__file__).parent.parent.parent / 'Documentos' / 'training_algorithms.json'
 
 
 COMPLEXITY_MAP = {
@@ -23,7 +29,7 @@ COMPLEXITY_MAP = {
 }
 
 
-def load_cormen_dataset(filepath: str, parser=None) -> List[Dict[str, Any]]:
+def load_cormen_dataset(filepath: str = None, parser=None) -> List[Dict[str, Any]]:
     """
     Carga dataset desde archivo JSON y traduce Cormen -> Python.
     
@@ -34,12 +40,15 @@ def load_cormen_dataset(filepath: str, parser=None) -> List[Dict[str, Any]]:
     ]
     
     Args:
-        filepath: Ruta al archivo JSON con ejemplos Cormen.
+        filepath: Ruta al archivo JSON. Por defecto usa Documentos/training_algorithms.json
         parser: Instancia de Parser para traducir. Si es None, usa codigo crudo.
         
     Returns:
         Lista de {'code': python_code, 'complexity': int_label}
     """
+    if filepath is None:
+        filepath = str(TRAINING_DATA_PATH)
+    
     with open(filepath, 'r', encoding='utf-8') as f:
         raw_data = json.load(f)
     

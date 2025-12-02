@@ -1,0 +1,298 @@
+[
+  {
+    "pseudocode": "CONSTANT-ACCESS(A, i)\n    return A[i]",
+    "complexity": "O(1)"
+  },
+  {
+    "pseudocode": "SWAP(A, i, j)\n    temp ← A[i]\n    A[i] ← A[j]\n    A[j] ← temp",
+    "complexity": "O(1)"
+  },
+  {
+    "pseudocode": "GET-MAX(a, b)\n    if a > b then\n        return a\n    else\n        return b",
+    "complexity": "O(1)"
+  },
+  {
+    "pseudocode": "INCREMENT(x)\n    x ← x + 1\n    return x",
+    "complexity": "O(1)"
+  },
+  {
+    "pseudocode": "IS-EVEN(n)\n    if n mod 2 = 0 then\n        return true\n    else\n        return false",
+    "complexity": "O(1)"
+  },
+  {
+    "pseudocode": "ARRAY-ACCESS(A, i, j)\n    return A[i][j]",
+    "complexity": "O(1)"
+  },
+  {
+    "pseudocode": "MIN-OF-TWO(a, b)\n    if a < b then\n        return a\n    return b",
+    "complexity": "O(1)"
+  },
+  {
+    "pseudocode": "SET-VALUE(A, i, value)\n    A[i] ← value",
+    "complexity": "O(1)"
+  },
+  {
+    "pseudocode": "BINARY-SEARCH(A, p, r, x)\n    if p > r then\n        return -1\n    q ← (p + r) div 2\n    if A[q] = x then\n        return q\n    else if A[q] > x then\n        return BINARY-SEARCH(A, p, q - 1, x)\n    else\n        return BINARY-SEARCH(A, q + 1, r, x)",
+    "complexity": "O(log n)"
+  },
+  {
+    "pseudocode": "ITERATIVE-BINARY-SEARCH(A, n, x)\n    low ← 1\n    high ← n\n    while low ≤ high do\n        mid ← (low + high) div 2\n        if A[mid] = x then\n            return mid\n        else if A[mid] < x then\n            low ← mid + 1\n        else\n            high ← mid - 1\n    return -1",
+    "complexity": "O(log n)"
+  },
+  {
+    "pseudocode": "HALVING(n)\n    count ← 0\n    while n > 1 do\n        n ← n div 2\n        count ← count + 1\n    return count",
+    "complexity": "O(log n)"
+  },
+  {
+    "pseudocode": "POWER(x, n)\n    if n = 0 then\n        return 1\n    if n mod 2 = 0 then\n        half ← POWER(x, n div 2)\n        return half * half\n    else\n        return x * POWER(x, n - 1)",
+    "complexity": "O(log n)"
+  },
+  {
+    "pseudocode": "FIND-FLOOR(A, n, x)\n    low ← 1\n    high ← n\n    result ← -1\n    while low ≤ high do\n        mid ← (low + high) div 2\n        if A[mid] ≤ x then\n            result ← mid\n            low ← mid + 1\n        else\n            high ← mid - 1\n    return result",
+    "complexity": "O(log n)"
+  },
+  {
+    "pseudocode": "FIND-CEIL(A, n, x)\n    low ← 1\n    high ← n\n    result ← -1\n    while low ≤ high do\n        mid ← (low + high) div 2\n        if A[mid] ≥ x then\n            result ← mid\n            high ← mid - 1\n        else\n            low ← mid + 1\n    return result",
+    "complexity": "O(log n)"
+  },
+  {
+    "pseudocode": "LINEAR-SEARCH(A, n, x)\n    for i ← 1 to n do\n        if A[i] = x then\n            return i\n    return -1",
+    "complexity": "O(n)"
+  },
+  {
+    "pseudocode": "FIND-MAX(A, n)\n    max ← A[1]\n    for i ← 2 to n do\n        if A[i] > max then\n            max ← A[i]\n    return max",
+    "complexity": "O(n)"
+  },
+  {
+    "pseudocode": "FIND-MIN(A, n)\n    min ← A[1]\n    for i ← 2 to n do\n        if A[i] < min then\n            min ← A[i]\n    return min",
+    "complexity": "O(n)"
+  },
+  {
+    "pseudocode": "SUM-ARRAY(A, n)\n    sum ← 0\n    for i ← 1 to n do\n        sum ← sum + A[i]\n    return sum",
+    "complexity": "O(n)"
+  },
+  {
+    "pseudocode": "COUNT-ELEMENT(A, n, x)\n    count ← 0\n    for i ← 1 to n do\n        if A[i] = x then\n            count ← count + 1\n    return count",
+    "complexity": "O(n)"
+  },
+  {
+    "pseudocode": "REVERSE-ARRAY(A, n)\n    for i ← 1 to n div 2 do\n        temp ← A[i]\n        A[i] ← A[n - i + 1]\n        A[n - i + 1] ← temp",
+    "complexity": "O(n)"
+  },
+  {
+    "pseudocode": "FACTORIAL-ITERATIVE(n)\n    result ← 1\n    for i ← 2 to n do\n        result ← result * i\n    return result",
+    "complexity": "O(n)"
+  },
+  {
+    "pseudocode": "COPY-ARRAY(A, B, n)\n    for i ← 1 to n do\n        B[i] ← A[i]",
+    "complexity": "O(n)"
+  },
+  {
+    "pseudocode": "FIND-MIN-MAX(A, n)\n    min ← A[1]\n    max ← A[1]\n    for i ← 2 to n do\n        if A[i] < min then\n            min ← A[i]\n        if A[i] > max then\n            max ← A[i]\n    return min, max",
+    "complexity": "O(n)"
+  },
+  {
+    "pseudocode": "AVERAGE-ARRAY(A, n)\n    sum ← 0\n    for i ← 1 to n do\n        sum ← sum + A[i]\n    return sum div n",
+    "complexity": "O(n)"
+  },
+  {
+    "pseudocode": "COUNT-POSITIVE(A, n)\n    count ← 0\n    for i ← 1 to n do\n        if A[i] > 0 then\n            count ← count + 1\n    return count",
+    "complexity": "O(n)"
+  },
+  {
+    "pseudocode": "MERGE-SORT(A, p, r)\n    if p < r then\n        q ← (p + r) div 2\n        MERGE-SORT(A, p, q)\n        MERGE-SORT(A, q + 1, r)\n        MERGE(A, p, q, r)",
+    "complexity": "O(n log n)"
+  },
+  {
+    "pseudocode": "QUICKSORT(A, p, r)\n    if p < r then\n        q ← PARTITION(A, p, r)\n        QUICKSORT(A, p, q - 1)\n        QUICKSORT(A, q + 1, r)",
+    "complexity": "O(n log n)"
+  },
+  {
+    "pseudocode": "HEAP-SORT(A, n)\n    BUILD-MAX-HEAP(A, n)\n    for i ← n downto 2 do\n        temp ← A[1]\n        A[1] ← A[i]\n        A[i] ← temp\n        MAX-HEAPIFY(A, 1, i - 1)",
+    "complexity": "O(n log n)"
+  },
+  {
+    "pseudocode": "PARTITION(A, p, r)\n    x ← A[r]\n    i ← p - 1\n    for j ← p to r - 1 do\n        if A[j] ≤ x then\n            i ← i + 1\n            temp ← A[i]\n            A[i] ← A[j]\n            A[j] ← temp\n    temp ← A[i + 1]\n    A[i + 1] ← A[r]\n    A[r] ← temp\n    return i + 1",
+    "complexity": "O(n)"
+  },
+  {
+    "pseudocode": "MERGE(A, p, q, r)\n    n1 ← q - p + 1\n    n2 ← r - q\n    for i ← 1 to n1 do\n        L[i] ← A[p + i - 1]\n    for j ← 1 to n2 do\n        R[j] ← A[q + j]\n    i ← 1\n    j ← 1\n    for k ← p to r do\n        if L[i] ≤ R[j] then\n            A[k] ← L[i]\n            i ← i + 1\n        else\n            A[k] ← R[j]\n            j ← j + 1",
+    "complexity": "O(n)"
+  },
+  {
+    "pseudocode": "BUILD-MAX-HEAP(A, n)\n    for i ← n div 2 downto 1 do\n        MAX-HEAPIFY(A, i, n)",
+    "complexity": "O(n)"
+  },
+  {
+    "pseudocode": "MAX-HEAPIFY(A, i, n)\n    l ← 2 * i\n    r ← 2 * i + 1\n    largest ← i\n    if l ≤ n and A[l] > A[largest] then\n        largest ← l\n    if r ≤ n and A[r] > A[largest] then\n        largest ← r\n    if largest ≠ i then\n        temp ← A[i]\n        A[i] ← A[largest]\n        A[largest] ← temp\n        MAX-HEAPIFY(A, largest, n)",
+    "complexity": "O(log n)"
+  },
+  {
+    "pseudocode": "BURBUJA-SORT(A, n)\n    for i ← 1 to n - 1 do\n        for j ← n downto i + 1 do\n            if A[j] < A[j-1] then\n                temp ← A[j]\n                A[j] ← A[j-1]\n                A[j-1] ← temp",
+    "complexity": "O(n^2)"
+  },
+  {
+    "pseudocode": "INSERTION-SORT(A, n)\n    for j ← 2 to n do\n        key ← A[j]\n        i ← j - 1\n        while i > 0 and A[i] > key do\n            A[i + 1] ← A[i]\n            i ← i - 1\n        A[i + 1] ← key",
+    "complexity": "O(n^2)"
+  },
+  {
+    "pseudocode": "SELECTION-SORT(A, n)\n    for i ← 1 to n - 1 do\n        smallest ← i\n        for j ← i + 1 to n do\n            if A[j] < A[smallest] then\n                smallest ← j\n        temp ← A[i]\n        A[i] ← A[smallest]\n        A[smallest] ← temp",
+    "complexity": "O(n^2)"
+  },
+  {
+    "pseudocode": "MATRIX-ADD(A, B, C, n)\n    for i ← 1 to n do\n        for j ← 1 to n do\n            C[i][j] ← A[i][j] + B[i][j]",
+    "complexity": "O(n^2)"
+  },
+  {
+    "pseudocode": "FIND-DUPLICATES(A, n)\n    count ← 0\n    for i ← 1 to n do\n        for j ← i + 1 to n do\n            if A[i] = A[j] then\n                count ← count + 1\n    return count",
+    "complexity": "O(n^2)"
+  },
+  {
+    "pseudocode": "BUBBLE-SORT-OPTIMIZED(A, n)\n    for i ← 1 to n - 1 do\n        swapped ← false\n        for j ← 1 to n - i do\n            if A[j] > A[j + 1] then\n                temp ← A[j]\n                A[j] ← A[j + 1]\n                A[j + 1] ← temp\n                swapped ← true\n        if swapped = false then\n            return",
+    "complexity": "O(n^2)"
+  },
+  {
+    "pseudocode": "PRINT-PAIRS(A, n)\n    for i ← 1 to n do\n        for j ← 1 to n do\n            PRINT(A[i], A[j])",
+    "complexity": "O(n^2)"
+  },
+  {
+    "pseudocode": "TWO-SUM-NAIVE(A, n, target)\n    for i ← 1 to n do\n        for j ← i + 1 to n do\n            if A[i] + A[j] = target then\n                return i, j\n    return -1, -1",
+    "complexity": "O(n^2)"
+  },
+  {
+    "pseudocode": "MATRIX-TRANSPOSE(A, B, n)\n    for i ← 1 to n do\n        for j ← 1 to n do\n            B[j][i] ← A[i][j]",
+    "complexity": "O(n^2)"
+  },
+  {
+    "pseudocode": "MATRIX-MULTIPLY(A, B, C, n)\n    for i ← 1 to n do\n        for j ← 1 to n do\n            C[i][j] ← 0\n            for k ← 1 to n do\n                C[i][j] ← C[i][j] + A[i][k] * B[k][j]",
+    "complexity": "O(n^3)"
+  },
+  {
+    "pseudocode": "FLOYD-WARSHALL(D, n)\n    for k ← 1 to n do\n        for i ← 1 to n do\n            for j ← 1 to n do\n                if D[i][k] + D[k][j] < D[i][j] then\n                    D[i][j] ← D[i][k] + D[k][j]",
+    "complexity": "O(n^3)"
+  },
+  {
+    "pseudocode": "TRIPLE-SUM(A, n)\n    count ← 0\n    for i ← 1 to n do\n        for j ← 1 to n do\n            for k ← 1 to n do\n                count ← count + A[i] + A[j] + A[k]\n    return count",
+    "complexity": "O(n^3)"
+  },
+  {
+    "pseudocode": "THREE-SUM-ZERO(A, n)\n    count ← 0\n    for i ← 1 to n do\n        for j ← i + 1 to n do\n            for k ← j + 1 to n do\n                if A[i] + A[j] + A[k] = 0 then\n                    count ← count + 1\n    return count",
+    "complexity": "O(n^3)"
+  },
+  {
+    "pseudocode": "LCS-LENGTH(X, Y, m, n)\n    for i ← 0 to m do\n        for j ← 0 to n do\n            if i = 0 or j = 0 then\n                C[i][j] ← 0\n            else if X[i] = Y[j] then\n                C[i][j] ← C[i-1][j-1] + 1\n            else\n                C[i][j] ← MAX(C[i-1][j], C[i][j-1])\n    return C[m][n]",
+    "complexity": "O(n^2)"
+  },
+  {
+    "pseudocode": "FIBONACCI-RECURSIVE(n)\n    if n ≤ 1 then\n        return n\n    return FIBONACCI-RECURSIVE(n - 1) + FIBONACCI-RECURSIVE(n - 2)",
+    "complexity": "O(2^n)"
+  },
+  {
+    "pseudocode": "GENERATE-SUBSETS(A, n, index, current)\n    if index = n + 1 then\n        PRINT(current)\n        return\n    GENERATE-SUBSETS(A, n, index + 1, current)\n    current ← current + A[index]\n    GENERATE-SUBSETS(A, n, index + 1, current)",
+    "complexity": "O(2^n)"
+  },
+  {
+    "pseudocode": "KNAPSACK-RECURSIVE(W, wt, val, n)\n    if n = 0 or W = 0 then\n        return 0\n    if wt[n] > W then\n        return KNAPSACK-RECURSIVE(W, wt, val, n - 1)\n    include ← val[n] + KNAPSACK-RECURSIVE(W - wt[n], wt, val, n - 1)\n    exclude ← KNAPSACK-RECURSIVE(W, wt, val, n - 1)\n    if include > exclude then\n        return include\n    else\n        return exclude",
+    "complexity": "O(2^n)"
+  },
+  {
+    "pseudocode": "TOWER-OF-HANOI(n, source, target, auxiliary)\n    if n = 1 then\n        MOVE(source, target)\n        return\n    TOWER-OF-HANOI(n - 1, source, auxiliary, target)\n    MOVE(source, target)\n    TOWER-OF-HANOI(n - 1, auxiliary, target, source)",
+    "complexity": "O(2^n)"
+  },
+  {
+    "pseudocode": "PERMUTATIONS(A, l, r)\n    if l = r then\n        PRINT(A)\n        return\n    for i ← l to r do\n        temp ← A[l]\n        A[l] ← A[i]\n        A[i] ← temp\n        PERMUTATIONS(A, l + 1, r)\n        temp ← A[l]\n        A[l] ← A[i]\n        A[i] ← temp",
+    "complexity": "O(2^n)"
+  },
+  {
+    "pseudocode": "N-QUEENS(board, col, n)\n    if col > n then\n        PRINT-SOLUTION(board)\n        return true\n    for i ← 1 to n do\n        if IS-SAFE(board, i, col) then\n            board[i][col] ← 1\n            N-QUEENS(board, col + 1, n)\n            board[i][col] ← 0\n    return false",
+    "complexity": "O(2^n)"
+  },
+  {
+    "pseudocode": "COUNTING-SORT(A, B, n, k)\n    for i ← 0 to k do\n        C[i] ← 0\n    for j ← 1 to n do\n        C[A[j]] ← C[A[j]] + 1\n    for i ← 1 to k do\n        C[i] ← C[i] + C[i - 1]\n    for j ← n downto 1 do\n        B[C[A[j]]] ← A[j]\n        C[A[j]] ← C[A[j]] - 1",
+    "complexity": "O(n)"
+  },
+  {
+    "pseudocode": "RADIX-SORT(A, n, d)\n    for i ← 1 to d do\n        COUNTING-SORT-ON-DIGIT(A, n, i)",
+    "complexity": "O(n)"
+  },
+  {
+    "pseudocode": "BUCKET-SORT(A, n)\n    for i ← 1 to n do\n        INSERT(B[FLOOR(n * A[i])], A[i])\n    for i ← 0 to n - 1 do\n        INSERTION-SORT(B[i])\n    CONCATENATE(B[0], B[1], ..., B[n-1])",
+    "complexity": "O(n)"
+  },
+  {
+    "pseudocode": "FIBONACCI-DP(n)\n    F[0] ← 0\n    F[1] ← 1\n    for i ← 2 to n do\n        F[i] ← F[i-1] + F[i-2]\n    return F[n]",
+    "complexity": "O(n)"
+  },
+  {
+    "pseudocode": "KNAPSACK-DP(W, wt, val, n)\n    for i ← 0 to n do\n        for w ← 0 to W do\n            if i = 0 or w = 0 then\n                K[i][w] ← 0\n            else if wt[i] ≤ w then\n                K[i][w] ← MAX(val[i] + K[i-1][w-wt[i]], K[i-1][w])\n            else\n                K[i][w] ← K[i-1][w]\n    return K[n][W]",
+    "complexity": "O(n^2)"
+  },
+  {
+    "pseudocode": "EDIT-DISTANCE(X, Y, m, n)\n    for i ← 0 to m do\n        D[i][0] ← i\n    for j ← 0 to n do\n        D[0][j] ← j\n    for i ← 1 to m do\n        for j ← 1 to n do\n            if X[i] = Y[j] then\n                D[i][j] ← D[i-1][j-1]\n            else\n                D[i][j] ← 1 + MIN(D[i-1][j], D[i][j-1], D[i-1][j-1])\n    return D[m][n]",
+    "complexity": "O(n^2)"
+  },
+  {
+    "pseudocode": "DFS(G, u)\n    color[u] ← GRAY\n    for each v in Adj[u] do\n        if color[v] = WHITE then\n            DFS(G, v)\n    color[u] ← BLACK",
+    "complexity": "O(n)"
+  },
+  {
+    "pseudocode": "BFS(G, s)\n    for each vertex u in V do\n        color[u] ← WHITE\n        d[u] ← INFINITY\n    color[s] ← GRAY\n    d[s] ← 0\n    Q ← EMPTY-QUEUE\n    ENQUEUE(Q, s)\n    while Q ≠ EMPTY do\n        u ← DEQUEUE(Q)\n        for each v in Adj[u] do\n            if color[v] = WHITE then\n                color[v] ← GRAY\n                d[v] ← d[u] + 1\n                ENQUEUE(Q, v)\n        color[u] ← BLACK",
+    "complexity": "O(n)"
+  },
+  {
+    "pseudocode": "DIJKSTRA(G, w, s)\n    INITIALIZE-SINGLE-SOURCE(G, s)\n    S ← EMPTY-SET\n    Q ← V\n    while Q ≠ EMPTY do\n        u ← EXTRACT-MIN(Q)\n        S ← S + u\n        for each vertex v in Adj[u] do\n            RELAX(u, v, w)",
+    "complexity": "O(n^2)"
+  },
+  {
+    "pseudocode": "BELLMAN-FORD(G, w, s)\n    INITIALIZE-SINGLE-SOURCE(G, s)\n    for i ← 1 to V - 1 do\n        for each edge (u, v) in E do\n            RELAX(u, v, w)\n    for each edge (u, v) in E do\n        if d[v] > d[u] + w(u, v) then\n            return FALSE\n    return TRUE",
+    "complexity": "O(n^2)"
+  },
+  {
+    "pseudocode": "PRIM-MST(G, w, r)\n    for each u in V do\n        key[u] ← INFINITY\n        parent[u] ← NIL\n    key[r] ← 0\n    Q ← V\n    while Q ≠ EMPTY do\n        u ← EXTRACT-MIN(Q)\n        for each v in Adj[u] do\n            if v in Q and w(u, v) < key[v] then\n                parent[v] ← u\n                key[v] ← w(u, v)",
+    "complexity": "O(n^2)"
+  },
+  {
+    "pseudocode": "KRUSKAL-MST(G, w)\n    A ← EMPTY-SET\n    for each vertex v in V do\n        MAKE-SET(v)\n    SORT edges of E by weight w\n    for each edge (u, v) in E do\n        if FIND-SET(u) ≠ FIND-SET(v) then\n            A ← A + (u, v)\n            UNION(u, v)\n    return A",
+    "complexity": "O(n log n)"
+  },
+  {
+    "pseudocode": "GCD-RECURSIVE(a, b)\n    if b = 0 then\n        return a\n    return GCD-RECURSIVE(b, a mod b)",
+    "complexity": "O(log n)"
+  },
+  {
+    "pseudocode": "GCD-ITERATIVE(a, b)\n    while b ≠ 0 do\n        temp ← b\n        b ← a mod b\n        a ← temp\n    return a",
+    "complexity": "O(log n)"
+  },
+  {
+    "pseudocode": "MODULAR-EXPONENTIATION(a, b, n)\n    result ← 1\n    a ← a mod n\n    while b > 0 do\n        if b mod 2 = 1 then\n            result ← (result * a) mod n\n        b ← b div 2\n        a ← (a * a) mod n\n    return result",
+    "complexity": "O(log n)"
+  },
+  {
+    "pseudocode": "SIEVE-OF-ERATOSTHENES(n)\n    for i ← 2 to n do\n        prime[i] ← true\n    for i ← 2 to SQRT(n) do\n        if prime[i] = true then\n            for j ← i * i to n do\n                prime[j] ← false",
+    "complexity": "O(n log n)"
+  },
+  {
+    "pseudocode": "ACTIVITY-SELECTOR(s, f, n)\n    A ← {1}\n    k ← 1\n    for m ← 2 to n do\n        if s[m] ≥ f[k] then\n            A ← A + {m}\n            k ← m\n    return A",
+    "complexity": "O(n)"
+  },
+  {
+    "pseudocode": "HUFFMAN(C)\n    n ← size of C\n    Q ← C\n    for i ← 1 to n - 1 do\n        z ← ALLOCATE-NODE()\n        x ← EXTRACT-MIN(Q)\n        y ← EXTRACT-MIN(Q)\n        z.left ← x\n        z.right ← y\n        z.freq ← x.freq + y.freq\n        INSERT(Q, z)\n    return EXTRACT-MIN(Q)",
+    "complexity": "O(n log n)"
+  },
+  {
+    "pseudocode": "MATRIX-CHAIN-ORDER(p, n)\n    for i ← 1 to n do\n        m[i][i] ← 0\n    for l ← 2 to n do\n        for i ← 1 to n - l + 1 do\n            j ← i + l - 1\n            m[i][j] ← INFINITY\n            for k ← i to j - 1 do\n                q ← m[i][k] + m[k+1][j] + p[i-1] * p[k] * p[j]\n                if q < m[i][j] then\n                    m[i][j] ← q\n                    s[i][j] ← k\n    return m, s",
+    "complexity": "O(n^3)"
+  },
+  {
+    "pseudocode": "ROD-CUTTING(p, n)\n    r[0] ← 0\n    for j ← 1 to n do\n        q ← -INFINITY\n        for i ← 1 to j do\n            q ← MAX(q, p[i] + r[j - i])\n        r[j] ← q\n    return r[n]",
+    "complexity": "O(n^2)"
+  },
+  {
+    "pseudocode": "COIN-CHANGE(coins, m, amount)\n    dp[0] ← 0\n    for i ← 1 to amount do\n        dp[i] ← INFINITY\n        for j ← 1 to m do\n            if coins[j] ≤ i then\n                dp[i] ← MIN(dp[i], dp[i - coins[j]] + 1)\n    return dp[amount]",
+    "complexity": "O(n^2)"
+  },
+  {
+    "pseudocode": "SUBSET-SUM(A, n, sum)\n    for i ← 0 to n do\n        dp[i][0] ← true\n    for j ← 1 to sum do\n        dp[0][j] ← false\n    for i ← 1 to n do\n        for j ← 1 to sum do\n            if A[i] > j then\n                dp[i][j] ← dp[i-1][j]\n            else\n                dp[i][j] ← dp[i-1][j] or dp[i-1][j - A[i]]\n    return dp[n][sum]",
+    "complexity": "O(n^2)"
+  }
+]

@@ -36,6 +36,7 @@ from Servicios.NeuralClassifier.utils import (
     save_cormen_dataset,
     print_dataset_summary,
     COMPLEXITY_MAP,
+    TRAINING_DATA_PATH,
 )
 
 
@@ -140,7 +141,7 @@ def main():
         description='Train the Neural Complexity Classifier with Cormen pseudocode'
     )
     arg_parser.add_argument('--dataset', '-d', type=str, default=None,
-                           help='Path to JSON dataset file')
+                           help='Path to JSON dataset (default: Documentos/training_algorithms.json)')
     arg_parser.add_argument('--epochs', '-e', type=int, default=500,
                            help='Training epochs (default: 500)')
     arg_parser.add_argument('--no-tuning', action='store_true',
@@ -171,9 +172,13 @@ def main():
     
     # Step 2: Load dataset
     print("\n[2/4] Loading dataset...")
-    if args.dataset and os.path.exists(args.dataset):
-        print(f"  Loading from: {args.dataset}")
-        with open(args.dataset, 'r', encoding='utf-8') as f:
+    
+    # Determinar ruta del dataset
+    dataset_path = args.dataset if args.dataset else str(TRAINING_DATA_PATH)
+    
+    if os.path.exists(dataset_path):
+        print(f"  Loading from: {dataset_path}")
+        with open(dataset_path, 'r', encoding='utf-8') as f:
             raw_dataset = json.load(f)
         
         if raw_dataset and 'pseudocode' in raw_dataset[0]:
@@ -185,7 +190,8 @@ def main():
                 for item in raw_dataset
             ]
     else:
-        print("  Using built-in extended Cormen dataset")
+        print(f"  WARNING: Dataset file not found: {dataset_path}")
+        print("  Using built-in dataset as fallback")
         cormen_dataset = create_cormen_dataset()
         
         from Servicios.NeuralClassifier.utils import create_extended_dataset as _ext
