@@ -76,7 +76,7 @@ class AnalysisResponse(BaseModel):
     complexity_average: Optional[str] = Field(None, description="Complejidad caso promedio E[T(n)]")
     justification: str = Field(..., description="Justificación matemática")
     justification_data: Dict[str, Any] = Field(..., description="Datos estructurados de la justificación")
-    validation: str = Field(..., description="Validación por IA")
+    validation: Optional[str] = Field(None, description="Validación por IA (None = pendiente)")
     ast_image: str = Field(..., description="Imagen del AST en Base64 (PNG)")
     
     class Config:
@@ -105,5 +105,43 @@ class AnalysisResponse(BaseModel):
                 },
                 "validation": "El análisis es correcto...",
                 "ast_image": "data:image/png;base64,..."
+            }
+        }
+
+
+class ValidationRequest(BaseModel):
+    """Request para validar análisis con IA."""
+    pseudocode: str = Field(
+        ..., 
+        description="Pseudocódigo analizado",
+        min_length=1
+    )
+    complexity_o: str = Field(..., description="Notación Big O calculada")
+    complexity_omega: str = Field(..., description="Notación Big Omega calculada")
+    complexity_theta: str = Field(..., description="Notación Big Theta calculada")
+    justification: str = Field(..., description="Justificación matemática")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "pseudocode": "INSERTION-SORT(A, n)...",
+                "complexity_o": "O(n²)",
+                "complexity_omega": "Ω(n)",
+                "complexity_theta": "No aplicable",
+                "justification": "Bucles anidados..."
+            }
+        }
+
+
+class ValidationResponse(BaseModel):
+    """Response con la validación de IA."""
+    validation: str = Field(..., description="Texto de validación de la IA")
+    status: str = Field(default="completed", description="Estado: 'completed' o 'error'")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "validation": "✅ El análisis es correcto. La complejidad O(n²) se justifica por...",
+                "status": "completed"
             }
         }

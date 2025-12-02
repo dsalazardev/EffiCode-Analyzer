@@ -14,7 +14,7 @@ from Enumerations.tipoAlgoritmo import TipoAlgoritmo
 from Servicios.ReportService import ReportService
 
 from ..deps import get_services, ServiceContainer
-from ..schemas.analysis import AnalysisRequest, AnalysisResponse, ReportRequest
+from ..schemas.analysis import AnalysisRequest, AnalysisResponse, ReportRequest, ValidationRequest, ValidationResponse
 
 
 router = APIRouter(
@@ -94,7 +94,7 @@ def generate_ast_image_base64(ast_obj) -> str:
     "/analyze",
     response_model=AnalysisResponse,
     summary="Analizar pseudocódigo",
-    description="Analiza pseudocódigo estilo Cormen y devuelve la complejidad algorítmica"
+    description="Analiza pseudocódigo estilo Cormen y devuelve la complejidad algorítmica (sin esperar validación IA)"
 )
 async def analyze_pseudocode(
     request: AnalysisRequest,
@@ -103,19 +103,21 @@ async def analyze_pseudocode(
     """
     Analiza el pseudocódigo proporcionado y calcula su complejidad algorítmica.
     
+    NOTA: La validación de IA se hace en un endpoint separado (/validate)
+    para evitar bloquear la respuesta principal.
+    
     El proceso incluye:
     1. Parsing del pseudocódigo a Python
     2. Generación del AST
     3. Análisis de complejidad (Big O, Omega, Theta)
-    4. Validación opcional con IA
-    5. Generación de imagen del AST
+    4. Generación de imagen del AST
     
     Args:
         request: Objeto con el pseudocódigo a analizar
         services: Contenedor de servicios (inyectado automáticamente)
         
     Returns:
-        AnalysisResponse con todos los resultados del análisis
+        AnalysisResponse con todos los resultados del análisis (validation=None)
         
     Raises:
         HTTPException: Si hay error en el parsing o análisis
@@ -137,33 +139,19 @@ async def analyze_pseudocode(
         
         resultado_complejidad = services.analizador.analizar(algoritmo)
         
-        # Step 3: Validate with LLM (optional - may fail if quota exceeded)
-        try:
-            reporte = Reporte(
-                id=1, 
-                algoritmo_analizado=algoritmo, 
-                resultado_complejidad=resultado_complejidad
-            )
-            validacion_ia = services.llm_service.validar_analisis(
-                resultado_complejidad, 
-                pseudocode
-            )
-        except Exception as llm_error:
-            print(f"⚠️  LLM validation skipped: {llm_error}")
-            validacion_ia = "Validación IA no disponible (cuota agotada o error de conexión)"
-        
-        # Step 4: Generate AST Image
+        # Step 3: Generate AST Image (NO esperamos IA aquí)
         ast_image_base64 = generate_ast_image_base64(ast_obj)
 
         print(f"✅ Analysis complete: {resultado_complejidad.notacion_o}")
         
+        # Retornamos inmediatamente SIN esperar validación IA
         return AnalysisResponse(
             complexity_o=resultado_complejidad.notacion_o,
             complexity_omega=resultado_complejidad.notacion_omega,
             complexity_theta=resultado_complejidad.notacion_theta,
             justification=resultado_complejidad.justificacion_matematica,
             justification_data=resultado_complejidad.justification_data,
-            validation=validacion_ia,
+            validation=None,  # Se obtendrá en /validate
             ast_image=ast_image_base64
         )
 
@@ -175,6 +163,68 @@ async def analyze_pseudocode(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
+
+
+@router.post(
+    "/validate",
+    response_model=ValidationResponse,
+    summary="Validar análisis con IA",
+    description="Valida el análisis de complejidad usando IA (Gemini). Endpoint separado para carga asíncrona."
+)
+async def validate_with_ai(
+    request: ValidationRequest,
+    services: ServiceContainer = Depends(get_services)
+) -> ValidationResponse:
+    """
+    Valida el análisis de complejidad usando IA (Gemini).
+    
+    Este endpoint está separado del análisis principal para permitir
+    que el frontend muestre los resultados inmediatamente mientras
+    la validación de IA se carga de forma asíncrona.
+    
+    Args:
+        request: Datos del análisis a validar
+        services: Contenedor de servicios
+        
+    Returns:
+        ValidationResponse con el texto de validación
+    """
+    try:
+        print(f"🤖 Starting AI validation for: {request.complexity_o}")
+        
+        # Crear objeto de complejidad simplificado para el LLM
+        class SimpleComplexity:
+            def __init__(self, o, omega, theta, justificacion):
+                self.notacion_o = o
+                self.notacion_omega = omega
+                self.notacion_theta = theta
+                self.justificacion_matematica = justificacion
+        
+        resultado_complejidad = SimpleComplexity(
+            request.complexity_o,
+            request.complexity_omega,
+            request.complexity_theta,
+            request.justification
+        )
+        
+        validacion_ia = services.llm_service.validar_analisis(
+            resultado_complejidad,
+            request.pseudocode
+        )
+        
+        print(f"✅ AI validation complete")
+        
+        return ValidationResponse(
+            validation=validacion_ia,
+            status="completed"
+        )
+        
+    except Exception as e:
+        print(f"⚠️ AI validation failed: {e}")
+        return ValidationResponse(
+            validation=f"Validación IA no disponible: {str(e)}",
+            status="error"
+        )
 
 
 @router.get(
