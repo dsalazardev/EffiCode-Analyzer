@@ -1,15 +1,24 @@
 """
 Orquestador principal de análisis de complejidad.
 Delega el análisis a servicios especializados según el tipo de algoritmo.
+Incluye clasificador neural como validación adicional.
 """
 from __future__ import annotations
-from typing import TYPE_CHECKING, List, Dict, Any
+from typing import TYPE_CHECKING, List, Dict, Any, Optional, Tuple
 
 from .Algoritmo import Algoritmo
 from .Complejidad import Complejidad
 from Servicios.EfficiencyVisitor import EfficiencyVisitor
 from Servicios.IterativeAnalyzerService import IterativeAnalyzerService
 from Servicios.RecursiveAnalyzerService import RecursiveAnalyzerService
+
+# Importar clasificador neural (opcional)
+try:
+    from Servicios.NeuralClassifier import NeuralComplexityClassifier
+    NEURAL_AVAILABLE = True
+except ImportError:
+    NEURAL_AVAILABLE = False
+    NeuralComplexityClassifier = None
 
 try:
     import sympy
@@ -29,6 +38,7 @@ class Analizador:
     """
     Orquesta el análisis de complejidad a partir del AST generado por el parser.
     Soporta tanto algoritmos iterativos como recursivos, delegando a servicios especializados.
+    Incluye clasificador neural para validación y predicción alternativa.
     """
 
     def __init__(self, id: int, parser: 'Parser', llm_service: 'LLMService'):
@@ -44,6 +54,10 @@ class Analizador:
         # Servicios especializados
         self._iterative_service = IterativeAnalyzerService()
         self._recursive_service = RecursiveAnalyzerService(llm_service)
+        
+        # Clasificador neural (carga perezosa)
+        self._neural_classifier: Optional[NeuralComplexityClassifier] = None
+        self._neural_loaded = False
 
     @property
     def id(self) -> int:
@@ -269,3 +283,144 @@ class Analizador:
             return self.analizar_recursivo(algoritmo)
         else:
             return self.analizar(algoritmo)
+
+    # =========================================================================
+    # CLASIFICADOR NEURAL - Neural Algorithmix
+    # =========================================================================
+    
+    def _cargar_clasificador_neural(self) -> bool:
+        """
+        Carga el clasificador neural de forma perezosa.
+        
+        Returns:
+            True si se cargó exitosamente, False en caso contrario
+        """
+        if self._neural_loaded:
+            return self._neural_classifier is not None
+        
+        self._neural_loaded = True
+        
+        if not NEURAL_AVAILABLE:
+            print("Warning: NeuralClassifier not available (numpy not installed)")
+            return False
+        
+        try:
+            self._neural_classifier = NeuralComplexityClassifier()
+            if self._neural_classifier.load():
+                print("Neural classifier loaded successfully")
+                return True
+            else:
+                print("Warning: No trained neural model available")
+                self._neural_classifier = None
+                return False
+        except Exception as e:
+            print(f"Error loading neural classifier: {e}")
+            self._neural_classifier = None
+            return False
+    
+    def clasificar_con_neural(self, codigo: str) -> Optional[Dict[str, Any]]:
+        """
+        Clasifica la complejidad usando la red neuronal.
+        
+        Args:
+            codigo: Código fuente o pseudocódigo a clasificar
+            
+        Returns:
+            Diccionario con predicción, confianza y probabilidades, o None si falla
+        """
+        if not self._cargar_clasificador_neural():
+            return None
+        
+        try:
+            complejidad, confianza, probabilidades = self._neural_classifier.classify(codigo)
+            return {
+                'complejidad_predicha': complejidad,
+                'confianza': confianza,
+                'probabilidades': probabilidades,
+                'metodo': 'Neural Algorithmix (MLP + DP + Backtracking)'
+            }
+        except Exception as e:
+            print(f"Error in neural classification: {e}")
+            return None
+    
+    def analizar_con_validacion_neural(self, algoritmo: Algoritmo) -> Tuple[Complejidad, Optional[Dict[str, Any]]]:
+        """
+        Analiza el algoritmo y valida con la red neuronal.
+        
+        Útil para comparar el análisis simbólico con la predicción neural.
+        
+        Args:
+            algoritmo: Algoritmo a analizar
+            
+        Returns:
+            Tupla (Complejidad del análisis simbólico, Predicción neural o None)
+        """
+        # Análisis simbólico normal
+        complejidad = self.analizar_auto(algoritmo)
+        
+        # Validación neural
+        prediccion_neural = self.clasificar_con_neural(algoritmo.codigo_fuente)
+        
+        # Agregar información neural al justification_data
+        if prediccion_neural and complejidad.justification_data:
+            complejidad.justification_data['neural_validation'] = {
+                'predicted_complexity': prediccion_neural['complejidad_predicha'],
+                'confidence': prediccion_neural['confianza'],
+                'probabilities': prediccion_neural['probabilidades'],
+                'matches_symbolic': prediccion_neural['complejidad_predicha'] == complejidad.notacion_o
+            }
+        
+        return complejidad, prediccion_neural
+    
+    def analizar_solo_neural(self, codigo: str) -> Optional[Complejidad]:
+        """
+        Analiza usando SOLO la red neuronal (sin análisis simbólico).
+        
+        Útil cuando el análisis simbólico falla o para algoritmos muy complejos.
+        
+        Args:
+            codigo: Código a analizar
+            
+        Returns:
+            Objeto Complejidad basado en predicción neural, o None si falla
+        """
+        prediccion = self.clasificar_con_neural(codigo)
+        if not prediccion:
+            return None
+        
+        # Construir objeto Complejidad desde predicción neural
+        complejidad_predicha = prediccion['complejidad_predicha']
+        confianza = prediccion['confianza']
+        
+        justificacion = (
+            f"Análisis realizado por Neural Algorithmix (Red Neuronal MLP).\n"
+            f"Confianza de la predicción: {confianza:.1%}\n\n"
+            f"Paradigmas utilizados:\n"
+            f"- Programación Dinámica: Extracción de features (Levenshtein)\n"
+            f"- Backtracking: Optimización de arquitectura\n"
+            f"- Algoritmo Voraz: Entrenamiento (Gradient Descent)\n\n"
+            f"Distribución de probabilidades:\n"
+        )
+        
+        for comp, prob in sorted(prediccion['probabilidades'].items(), key=lambda x: -x[1]):
+            bar = "█" * int(prob * 20)
+            justificacion += f"  {comp}: {prob:.1%} {bar}\n"
+        
+        return Complejidad(
+            id=self._id,
+            notacion_o=complejidad_predicha,
+            notacion_omega=complejidad_predicha,  # Aproximación
+            notacion_theta=complejidad_predicha,  # Aproximación
+            justificacion=justificacion,
+            justification_data={
+                'method': 'neural_network',
+                'confidence': confianza,
+                'probabilities': prediccion['probabilidades'],
+                'paradigms_used': [
+                    'Programación Dinámica (Feature Extraction)',
+                    'Backtracking (Hyperparameter Tuning)',
+                    'Algoritmo Voraz (Gradient Descent)'
+                ]
+            }
+        )
+

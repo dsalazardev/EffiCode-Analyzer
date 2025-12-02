@@ -141,7 +141,7 @@ class ValidationResponse(BaseModel):
     class Config:
         json_schema_extra = {
             "example": {
-                "validation": "✅ El análisis es correcto. La complejidad O(n²) se justifica por...",
+                "validation": "El analisis es correcto. La complejidad O(n^2) se justifica por...",
                 "status": "completed"
             }
         }

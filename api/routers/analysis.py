@@ -142,7 +142,7 @@ async def analyze_pseudocode(
         # Step 3: Generate AST Image (NO esperamos IA aquí)
         ast_image_base64 = generate_ast_image_base64(ast_obj)
 
-        print(f"✅ Analysis complete: {resultado_complejidad.notacion_o}")
+        print(f"Analysis complete: {resultado_complejidad.notacion_o}")
         
         # Retornamos inmediatamente SIN esperar validación IA
         return AnalysisResponse(
@@ -156,7 +156,7 @@ async def analyze_pseudocode(
         )
 
     except SyntaxError as e:
-        print(f"❌ Syntax error: {e}")
+        print(f"Syntax error: {e}")
         raise HTTPException(status_code=400, detail=f"Error de sintaxis: {str(e)}")
     
     except Exception as e:
@@ -190,7 +190,7 @@ async def validate_with_ai(
         ValidationResponse con el texto de validación
     """
     try:
-        print(f"🤖 Starting AI validation for: {request.complexity_o}")
+        print(f"Starting AI validation for: {request.complexity_o}")
         
         # Crear objeto de complejidad simplificado para el LLM
         class SimpleComplexity:
@@ -212,7 +212,7 @@ async def validate_with_ai(
             request.pseudocode
         )
         
-        print(f"✅ AI validation complete")
+        print(f"AI validation complete")
         
         return ValidationResponse(
             validation=validacion_ia,
@@ -220,7 +220,7 @@ async def validate_with_ai(
         )
         
     except Exception as e:
-        print(f"⚠️ AI validation failed: {e}")
+        print(f"AI validation failed: {e}")
         return ValidationResponse(
             validation=f"Validación IA no disponible: {str(e)}",
             status="error"

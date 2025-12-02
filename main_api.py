@@ -39,14 +39,14 @@ async def lifespan(app: FastAPI):
     Inicializa servicios al arrancar y los limpia al cerrar.
     """
     # Startup
-    print("🚀 Starting EffiCode Analyzer API...")
+    print("Starting EffiCode Analyzer API...")
     ServiceContainer.initialize()
-    print("✅ All services initialized successfully")
+    print("All services initialized successfully")
     
-    yield  # La aplicación se ejecuta aquí
+    yield
     
     # Shutdown
-    print("👋 Shutting down EffiCode Analyzer API...")
+    print("Shutting down EffiCode Analyzer API...")
 
 
 # Crear aplicación FastAPI
