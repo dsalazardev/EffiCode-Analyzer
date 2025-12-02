@@ -1,19 +1,92 @@
 """
 Funciones auxiliares para el sistema Neural Algorithmix.
 
-Incluye generacion de datasets de ejemplo y funciones de visualizacion.
+Dataset de entrenamiento en pseudocodigo estilo Cormen.
+El Parser traduce Cormen -> Python antes de entrenar.
 """
 
-from typing import List, Dict, Any
+import json
+from typing import List, Dict, Any, Optional
+from pathlib import Path
 
 
-def create_sample_dataset() -> List[Dict[str, Any]]:
+COMPLEXITY_MAP = {
+    'O(1)': 0,
+    'O(log n)': 1,
+    'O(n)': 2,
+    'O(n log n)': 3,
+    'O(n^2)': 4,
+    'O(n²)': 4,
+    'O(n^3)': 5,
+    'O(n³)': 5,
+    'O(2^n)': 6,
+}
+
+
+def load_cormen_dataset(filepath: str, parser=None) -> List[Dict[str, Any]]:
     """
-    Crea un dataset de ejemplo para entrenamiento.
+    Carga dataset desde archivo JSON y traduce Cormen -> Python.
     
-    Etiquetas:
+    Formato esperado del JSON:
+    [
+        {"pseudocode": "ALGORITMO(A, n)\\n    ...", "complexity": "O(n^2)"},
+        ...
+    ]
+    
+    Args:
+        filepath: Ruta al archivo JSON con ejemplos Cormen.
+        parser: Instancia de Parser para traducir. Si es None, usa codigo crudo.
+        
+    Returns:
+        Lista de {'code': python_code, 'complexity': int_label}
+    """
+    with open(filepath, 'r', encoding='utf-8') as f:
+        raw_data = json.load(f)
+    
+    dataset = []
+    for item in raw_data:
+        pseudocode = item.get('pseudocode', item.get('code', ''))
+        complexity_str = item.get('complexity', 'O(n)')
+        
+        complexity_label = COMPLEXITY_MAP.get(complexity_str, 2)
+        
+        if parser is not None:
+            try:
+                ast_obj = parser.parsear(pseudocode)
+                python_code = ast_obj._codigo
+            except Exception as e:
+                print(f"Warning: Failed to parse, using raw code: {e}")
+                python_code = pseudocode
+        else:
+            python_code = pseudocode
+        
+        dataset.append({
+            'code': python_code,
+            'complexity': complexity_label
+        })
+    
+    return dataset
+
+
+def save_cormen_dataset(dataset: List[Dict[str, Any]], filepath: str):
+    """
+    Guarda dataset en formato JSON Cormen.
+    
+    Args:
+        dataset: Lista de {'pseudocode': str, 'complexity': str}
+        filepath: Ruta de salida.
+    """
+    with open(filepath, 'w', encoding='utf-8') as f:
+        json.dump(dataset, f, indent=2, ensure_ascii=False)
+
+
+def create_cormen_dataset() -> List[Dict[str, Any]]:
+    """
+    Dataset de entrenamiento en pseudocodigo Cormen puro.
+    
+    Complejidades:
     - 0: O(1)       Constante
-    - 1: O(log n)   Logaritmica
+    - 1: O(log n)   Logaritmica  
     - 2: O(n)       Lineal
     - 3: O(n log n) Linearitmica
     - 4: O(n^2)     Cuadratica
@@ -21,298 +94,483 @@ def create_sample_dataset() -> List[Dict[str, Any]]:
     - 6: O(2^n)     Exponencial
     
     Returns:
-        Lista de diccionarios con 'code' y 'complexity'.
+        Lista de {'pseudocode': cormen_code, 'complexity': str_label}
     """
     return [
-        # O(1) - Constante
-        {'code': 'return a + b', 'complexity': 0},
-        {'code': 'x = array[0]\nreturn x', 'complexity': 0},
-        {'code': 'if n > 0:\n    return True\nelse:\n    return False', 'complexity': 0},
-        {'code': 'return array[index]', 'complexity': 0},
-        {'code': 'temp = a\na = b\nb = temp', 'complexity': 0},
+        # =====================================================================
+        # O(1) - CONSTANTE
+        # =====================================================================
+        {
+            'pseudocode': '''CONSTANT-ACCESS(A, i)
+    return A[i]''',
+            'complexity': 'O(1)'
+        },
+        {
+            'pseudocode': '''SWAP(A, i, j)
+    temp ← A[i]
+    A[i] ← A[j]
+    A[j] ← temp''',
+            'complexity': 'O(1)'
+        },
+        {
+            'pseudocode': '''GET-MAX(a, b)
+    if a > b then
+        return a
+    else
+        return b''',
+            'complexity': 'O(1)'
+        },
+        {
+            'pseudocode': '''INCREMENT(x)
+    x ← x + 1
+    return x''',
+            'complexity': 'O(1)'
+        },
+        {
+            'pseudocode': '''IS-EVEN(n)
+    if n mod 2 = 0 then
+        return true
+    else
+        return false''',
+            'complexity': 'O(1)'
+        },
         
-        # O(log n) - Logaritmica
-        {'code': '''
-def binary_search(arr, target):
-    low = 0
-    high = len(arr) - 1
-    while low <= high:
-        mid = (low + high) // 2
-        if arr[mid] == target:
+        # =====================================================================
+        # O(log n) - LOGARITMICA
+        # =====================================================================
+        {
+            'pseudocode': '''BINARY-SEARCH(A, p, r, x)
+    if p > r then
+        return -1
+    q ← (p + r) div 2
+    if A[q] = x then
+        return q
+    else if A[q] > x then
+        return BINARY-SEARCH(A, p, q - 1, x)
+    else
+        return BINARY-SEARCH(A, q + 1, r, x)''',
+            'complexity': 'O(log n)'
+        },
+        {
+            'pseudocode': '''ITERATIVE-BINARY-SEARCH(A, n, x)
+    low ← 1
+    high ← n
+    while low ≤ high do
+        mid ← (low + high) div 2
+        if A[mid] = x then
             return mid
-        elif arr[mid] < target:
-            low = mid + 1
-        else:
-            high = mid - 1
-    return -1
-        ''', 'complexity': 1},
-        {'code': '''
-while n > 1:
-    n = n // 2
-    count += 1
-        ''', 'complexity': 1},
-        {'code': '''
-while low <= high:
-    mid = low + (high - low) // 2
-    if arr[mid] == x:
-        return mid
-    elif arr[mid] < x:
-        low = mid + 1
-    else:
-        high = mid - 1
-        ''', 'complexity': 1},
+        else if A[mid] < x then
+            low ← mid + 1
+        else
+            high ← mid - 1
+    return -1''',
+            'complexity': 'O(log n)'
+        },
+        {
+            'pseudocode': '''HALVING(n)
+    count ← 0
+    while n > 1 do
+        n ← n div 2
+        count ← count + 1
+    return count''',
+            'complexity': 'O(log n)'
+        },
+        {
+            'pseudocode': '''POWER(x, n)
+    if n = 0 then
+        return 1
+    if n mod 2 = 0 then
+        half ← POWER(x, n div 2)
+        return half * half
+    else
+        return x * POWER(x, n - 1)''',
+            'complexity': 'O(log n)'
+        },
         
-        # O(n) - Lineal
-        {'code': '''
-for i in range(n):
-    sum += arr[i]
-return sum
-        ''', 'complexity': 2},
-        {'code': '''
-def linear_search(arr, target):
-    for i in range(len(arr)):
-        if arr[i] == target:
+        # =====================================================================
+        # O(n) - LINEAL
+        # =====================================================================
+        {
+            'pseudocode': '''LINEAR-SEARCH(A, n, x)
+    for i ← 1 to n do
+        if A[i] = x then
             return i
-    return -1
-        ''', 'complexity': 2},
-        {'code': '''
-for i in range(0, n):
-    if A[i] > max:
-        max = A[i]
-return max
-        ''', 'complexity': 2},
-        {'code': '''
-count = 0
-for item in array:
-    if item > threshold:
-        count += 1
-return count
-        ''', 'complexity': 2},
-        {'code': '''
-result = []
-for i in range(n):
-    result.append(arr[i] * 2)
-return result
-        ''', 'complexity': 2},
+    return -1''',
+            'complexity': 'O(n)'
+        },
+        {
+            'pseudocode': '''FIND-MAX(A, n)
+    max ← A[1]
+    for i ← 2 to n do
+        if A[i] > max then
+            max ← A[i]
+    return max''',
+            'complexity': 'O(n)'
+        },
+        {
+            'pseudocode': '''SUM-ARRAY(A, n)
+    sum ← 0
+    for i ← 1 to n do
+        sum ← sum + A[i]
+    return sum''',
+            'complexity': 'O(n)'
+        },
+        {
+            'pseudocode': '''COUNT-ELEMENT(A, n, x)
+    count ← 0
+    for i ← 1 to n do
+        if A[i] = x then
+            count ← count + 1
+    return count''',
+            'complexity': 'O(n)'
+        },
+        {
+            'pseudocode': '''REVERSE-ARRAY(A, n)
+    for i ← 1 to n div 2 do
+        temp ← A[i]
+        A[i] ← A[n - i + 1]
+        A[n - i + 1] ← temp''',
+            'complexity': 'O(n)'
+        },
+        {
+            'pseudocode': '''FACTORIAL-ITERATIVE(n)
+    result ← 1
+    for i ← 2 to n do
+        result ← result * i
+    return result''',
+            'complexity': 'O(n)'
+        },
         
-        # O(n log n) - Linearitmica
-        {'code': '''
-def merge_sort(arr):
-    if len(arr) <= 1:
-        return arr
-    mid = len(arr) // 2
-    left = merge_sort(arr[:mid])
-    right = merge_sort(arr[mid:])
-    return merge(left, right)
-        ''', 'complexity': 3},
-        {'code': '''
-def quick_sort(arr, low, high):
-    if low < high:
-        pivot = partition(arr, low, high)
-        quick_sort(arr, low, pivot - 1)
-        quick_sort(arr, pivot + 1, high)
-        ''', 'complexity': 3},
-        {'code': '''
-def heap_sort(arr):
-    build_heap(arr)
-    for i in range(n - 1, 0, -1):
-        arr[0], arr[i] = arr[i], arr[0]
-        heapify(arr, 0, i)
-        ''', 'complexity': 3},
+        # =====================================================================
+        # O(n log n) - LINEARITMICA
+        # =====================================================================
+        {
+            'pseudocode': '''MERGE-SORT(A, p, r)
+    if p < r then
+        q ← (p + r) div 2
+        MERGE-SORT(A, p, q)
+        MERGE-SORT(A, q + 1, r)
+        MERGE(A, p, q, r)''',
+            'complexity': 'O(n log n)'
+        },
+        {
+            'pseudocode': '''QUICKSORT(A, p, r)
+    if p < r then
+        q ← PARTITION(A, p, r)
+        QUICKSORT(A, p, q - 1)
+        QUICKSORT(A, q + 1, r)''',
+            'complexity': 'O(n log n)'
+        },
+        {
+            'pseudocode': '''PARTITION(A, p, r)
+    x ← A[r]
+    i ← p - 1
+    for j ← p to r - 1 do
+        if A[j] ≤ x then
+            i ← i + 1
+            temp ← A[i]
+            A[i] ← A[j]
+            A[j] ← temp
+    temp ← A[i + 1]
+    A[i + 1] ← A[r]
+    A[r] ← temp
+    return i + 1''',
+            'complexity': 'O(n)'
+        },
+        {
+            'pseudocode': '''HEAP-SORT(A, n)
+    BUILD-MAX-HEAP(A, n)
+    for i ← n downto 2 do
+        temp ← A[1]
+        A[1] ← A[i]
+        A[i] ← temp
+        MAX-HEAPIFY(A, 1, i - 1)''',
+            'complexity': 'O(n log n)'
+        },
+        {
+            'pseudocode': '''MERGE(A, p, q, r)
+    n1 ← q - p + 1
+    n2 ← r - q
+    for i ← 1 to n1 do
+        L[i] ← A[p + i - 1]
+    for j ← 1 to n2 do
+        R[j] ← A[q + j]
+    i ← 1
+    j ← 1
+    for k ← p to r do
+        if L[i] ≤ R[j] then
+            A[k] ← L[i]
+            i ← i + 1
+        else
+            A[k] ← R[j]
+            j ← j + 1''',
+            'complexity': 'O(n)'
+        },
         
-        # O(n^2) - Cuadratica
-        {'code': '''
-for i in range(n):
-    for j in range(n):
-        if arr[j] > arr[j + 1]:
-            arr[j], arr[j + 1] = arr[j + 1], arr[j]
-        ''', 'complexity': 4},
-        {'code': '''
-INSERTION-SORT(A, n)
-    for j = 2 to n
-        key = A[j]
-        i = j - 1
-        while i > 0 and A[i] > key
-            A[i + 1] = A[i]
-            i = i - 1
-        A[i + 1] = key
-        ''', 'complexity': 4},
-        {'code': '''
-for i in range(n):
-    min_idx = i
-    for j in range(i + 1, n):
-        if arr[j] < arr[min_idx]:
-            min_idx = j
-    arr[i], arr[min_idx] = arr[min_idx], arr[i]
-        ''', 'complexity': 4},
-        {'code': '''
-for i in range(0, n):
-    for j in range(0, n):
-        C[i][j] = A[i][j] + B[i][j]
-        ''', 'complexity': 4},
-        {'code': '''
-BUBBLE-SORT(A, n)
-    for i = 1 to n - 1
-        for j = 1 to n - i
-            if A[j] > A[j + 1]
-                exchange A[j] with A[j + 1]
-        ''', 'complexity': 4},
-        {'code': '''
-for i in range(n):
-    for j in range(i + 1, n):
-        if arr[i] == arr[j]:
-            duplicates.append(arr[i])
-        ''', 'complexity': 4},
+        # =====================================================================
+        # O(n^2) - CUADRATICA
+        # =====================================================================
+        {
+            'pseudocode': '''BURBUJA-SORT(A, n)
+    for i ← 1 to n - 1 do
+        for j ← n downto i + 1 do
+            if A[j] < A[j-1] then
+                temp ← A[j]
+                A[j] ← A[j-1]
+                A[j-1] ← temp''',
+            'complexity': 'O(n^2)'
+        },
+        {
+            'pseudocode': '''INSERTION-SORT(A, n)
+    for j ← 2 to n do
+        key ← A[j]
+        i ← j - 1
+        while i > 0 and A[i] > key do
+            A[i + 1] ← A[i]
+            i ← i - 1
+        A[i + 1] ← key''',
+            'complexity': 'O(n^2)'
+        },
+        {
+            'pseudocode': '''SELECTION-SORT(A, n)
+    for i ← 1 to n - 1 do
+        smallest ← i
+        for j ← i + 1 to n do
+            if A[j] < A[smallest] then
+                smallest ← j
+        temp ← A[i]
+        A[i] ← A[smallest]
+        A[smallest] ← temp''',
+            'complexity': 'O(n^2)'
+        },
+        {
+            'pseudocode': '''MATRIX-ADD(A, B, C, n)
+    for i ← 1 to n do
+        for j ← 1 to n do
+            C[i][j] ← A[i][j] + B[i][j]''',
+            'complexity': 'O(n^2)'
+        },
+        {
+            'pseudocode': '''FIND-DUPLICATES(A, n)
+    count ← 0
+    for i ← 1 to n do
+        for j ← i + 1 to n do
+            if A[i] = A[j] then
+                count ← count + 1
+    return count''',
+            'complexity': 'O(n^2)'
+        },
+        {
+            'pseudocode': '''BUBBLE-SORT-OPTIMIZED(A, n)
+    for i ← 1 to n - 1 do
+        swapped ← false
+        for j ← 1 to n - i do
+            if A[j] > A[j + 1] then
+                temp ← A[j]
+                A[j] ← A[j + 1]
+                A[j + 1] ← temp
+                swapped ← true
+        if swapped = false then
+            return''',
+            'complexity': 'O(n^2)'
+        },
         
-        # O(n^3) - Cubica
-        {'code': '''
-for i in range(n):
-    for j in range(n):
-        for k in range(n):
-            C[i][j] += A[i][k] * B[k][j]
-        ''', 'complexity': 5},
-        {'code': '''
-for i in range(n):
-    for j in range(n):
-        for k in range(n):
-            sum += arr[i][j][k]
-        ''', 'complexity': 5},
-        {'code': '''
-def floyd_warshall(graph):
-    for k in range(n):
-        for i in range(n):
-            for j in range(n):
-                dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j])
-        ''', 'complexity': 5},
+        # =====================================================================
+        # O(n^3) - CUBICA
+        # =====================================================================
+        {
+            'pseudocode': '''MATRIX-MULTIPLY(A, B, C, n)
+    for i ← 1 to n do
+        for j ← 1 to n do
+            C[i][j] ← 0
+            for k ← 1 to n do
+                C[i][j] ← C[i][j] + A[i][k] * B[k][j]''',
+            'complexity': 'O(n^3)'
+        },
+        {
+            'pseudocode': '''FLOYD-WARSHALL(D, n)
+    for k ← 1 to n do
+        for i ← 1 to n do
+            for j ← 1 to n do
+                if D[i][k] + D[k][j] < D[i][j] then
+                    D[i][j] ← D[i][k] + D[k][j]''',
+            'complexity': 'O(n^3)'
+        },
+        {
+            'pseudocode': '''TRIPLE-SUM(A, n)
+    count ← 0
+    for i ← 1 to n do
+        for j ← 1 to n do
+            for k ← 1 to n do
+                count ← count + A[i] + A[j] + A[k]
+    return count''',
+            'complexity': 'O(n^3)'
+        },
         
-        # O(2^n) - Exponencial
-        {'code': '''
-def fibonacci(n):
-    if n <= 1:
+        # =====================================================================
+        # O(2^n) - EXPONENCIAL
+        # =====================================================================
+        {
+            'pseudocode': '''FIBONACCI-RECURSIVE(n)
+    if n ≤ 1 then
         return n
-    return fibonacci(n - 1) + fibonacci(n - 2)
-        ''', 'complexity': 6},
-        {'code': '''
-def subsets(arr, index, current):
-    if index == len(arr):
-        print(current)
+    return FIBONACCI-RECURSIVE(n - 1) + FIBONACCI-RECURSIVE(n - 2)''',
+            'complexity': 'O(2^n)'
+        },
+        {
+            'pseudocode': '''GENERATE-SUBSETS(A, n, index, current)
+    if index = n + 1 then
+        PRINT(current)
         return
-    subsets(arr, index + 1, current)
-    subsets(arr, index + 1, current + [arr[index]])
-        ''', 'complexity': 6},
-        {'code': '''
-def solve(items, capacity, index):
-    if index == 0 or capacity == 0:
+    GENERATE-SUBSETS(A, n, index + 1, current)
+    current ← current + A[index]
+    GENERATE-SUBSETS(A, n, index + 1, current)''',
+            'complexity': 'O(2^n)'
+        },
+        {
+            'pseudocode': '''KNAPSACK-RECURSIVE(W, wt, val, n)
+    if n = 0 or W = 0 then
         return 0
-    if items[index].weight > capacity:
-        return solve(items, capacity, index - 1)
-    return max(
-        items[index].value + solve(items, capacity - items[index].weight, index - 1),
-        solve(items, capacity, index - 1)
-    )
-        ''', 'complexity': 6},
+    if wt[n] > W then
+        return KNAPSACK-RECURSIVE(W, wt, val, n - 1)
+    include ← val[n] + KNAPSACK-RECURSIVE(W - wt[n], wt, val, n - 1)
+    exclude ← KNAPSACK-RECURSIVE(W, wt, val, n - 1)
+    if include > exclude then
+        return include
+    else
+        return exclude''',
+            'complexity': 'O(2^n)'
+        },
+        {
+            'pseudocode': '''TOWER-OF-HANOI(n, source, target, auxiliary)
+    if n = 1 then
+        MOVE(source, target)
+        return
+    TOWER-OF-HANOI(n - 1, source, auxiliary, target)
+    MOVE(source, target)
+    TOWER-OF-HANOI(n - 1, auxiliary, target, source)''',
+            'complexity': 'O(2^n)'
+        },
+    ]
+
+
+def create_sample_dataset() -> List[Dict[str, Any]]:
+    """
+    Alias de create_cormen_dataset para compatibilidad.
+    Retorna dataset en formato listo para entrenar (con 'code' en vez de 'pseudocode').
+    
+    NOTA: Este dataset contiene pseudocodigo Cormen.
+    Debe ser procesado con Parser antes de entrenar.
+    """
+    cormen = create_cormen_dataset()
+    return [
+        {'code': item['pseudocode'], 'complexity': COMPLEXITY_MAP[item['complexity']]}
+        for item in cormen
     ]
 
 
 def create_extended_dataset() -> List[Dict[str, Any]]:
     """
-    Crea un dataset extendido con mas ejemplos por clase.
-    
-    Returns:
-        Lista extendida de ejemplos.
+    Dataset extendido con variaciones adicionales.
     """
-    base = create_sample_dataset()
+    base = create_cormen_dataset()
     
-    extended = [
+    extended_cormen = [
         # Mas O(1)
-        {'code': 'return n % 2 == 0', 'complexity': 0},
-        {'code': 'return hash(key) % table_size', 'complexity': 0},
-        {'code': 'stack.push(item)', 'complexity': 0},
+        {
+            'pseudocode': '''ARRAY-ACCESS(A, i, j)
+    return A[i][j]''',
+            'complexity': 'O(1)'
+        },
+        {
+            'pseudocode': '''MIN-OF-TWO(a, b)
+    if a < b then
+        return a
+    return b''',
+            'complexity': 'O(1)'
+        },
         
         # Mas O(log n)
-        {'code': '''
-def find_power(x, n):
-    if n == 0:
-        return 1
-    if n % 2 == 0:
-        half = find_power(x, n // 2)
-        return half * half
-    else:
-        return x * find_power(x, n - 1)
-        ''', 'complexity': 1},
+        {
+            'pseudocode': '''FIND-FLOOR(A, n, x)
+    low ← 1
+    high ← n
+    result ← -1
+    while low ≤ high do
+        mid ← (low + high) div 2
+        if A[mid] ≤ x then
+            result ← mid
+            low ← mid + 1
+        else
+            high ← mid - 1
+    return result''',
+            'complexity': 'O(log n)'
+        },
         
         # Mas O(n)
-        {'code': '''
-prev = 0
-curr = 1
-for i in range(2, n):
-    temp = curr
-    curr = prev + curr
-    prev = temp
-return curr
-        ''', 'complexity': 2},
-        {'code': '''
-def reverse_array(arr):
-    left = 0
-    right = len(arr) - 1
-    while left < right:
-        arr[left], arr[right] = arr[right], arr[left]
-        left += 1
-        right -= 1
-        ''', 'complexity': 2},
+        {
+            'pseudocode': '''COPY-ARRAY(A, B, n)
+    for i ← 1 to n do
+        B[i] ← A[i]''',
+            'complexity': 'O(n)'
+        },
+        {
+            'pseudocode': '''FIND-MIN-MAX(A, n)
+    min ← A[1]
+    max ← A[1]
+    for i ← 2 to n do
+        if A[i] < min then
+            min ← A[i]
+        if A[i] > max then
+            max ← A[i]
+    return min, max''',
+            'complexity': 'O(n)'
+        },
         
         # Mas O(n^2)
-        {'code': '''
-for i in range(n):
-    for j in range(n - i - 1):
-        if arr[j] > arr[j + 1]:
-            swap(arr, j, j + 1)
-        ''', 'complexity': 4},
-        
-        # Mas O(2^n)
-        {'code': '''
-def generate_permutations(arr, l, r):
-    if l == r:
-        print(arr)
-    else:
-        for i in range(l, r + 1):
-            arr[l], arr[i] = arr[i], arr[l]
-            generate_permutations(arr, l + 1, r)
-            arr[l], arr[i] = arr[i], arr[l]
-        ''', 'complexity': 6},
+        {
+            'pseudocode': '''PRINT-PAIRS(A, n)
+    for i ← 1 to n do
+        for j ← 1 to n do
+            PRINT(A[i], A[j])''',
+            'complexity': 'O(n^2)'
+        },
+        {
+            'pseudocode': '''TWO-SUM-NAIVE(A, n, target)
+    for i ← 1 to n do
+        for j ← i + 1 to n do
+            if A[i] + A[j] = target then
+                return i, j
+    return -1, -1''',
+            'complexity': 'O(n^2)'
+        },
     ]
     
-    return base + extended
+    all_cormen = base + extended_cormen
+    return [
+        {'code': item['pseudocode'], 'complexity': COMPLEXITY_MAP[item['complexity']]}
+        for item in all_cormen
+    ]
 
 
 def get_complexity_distribution(dataset: List[Dict[str, Any]]) -> Dict[str, int]:
-    """
-    Calcula la distribucion de clases en un dataset.
-    
-    Args:
-        dataset: Lista de ejemplos.
-        
-    Returns:
-        Diccionario con conteo por clase.
-    """
+    """Calcula distribucion de clases en un dataset."""
     from .consts import COMPLEXITY_CLASSES
     
     counts = {name: 0 for name in COMPLEXITY_CLASSES.values()}
     
     for item in dataset:
-        class_name = COMPLEXITY_CLASSES.get(item['complexity'], 'Unknown')
+        complexity = item.get('complexity', 2)
+        if isinstance(complexity, str):
+            complexity = COMPLEXITY_MAP.get(complexity, 2)
+        class_name = COMPLEXITY_CLASSES.get(complexity, 'Unknown')
         counts[class_name] = counts.get(class_name, 0) + 1
     
     return counts
 
 
 def print_dataset_summary(dataset: List[Dict[str, Any]]) -> None:
-    """
-    Imprime un resumen del dataset.
-    
-    Args:
-        dataset: Lista de ejemplos.
-    """
+    """Imprime resumen del dataset."""
     distribution = get_complexity_distribution(dataset)
     
     print(f"\nDataset Summary ({len(dataset)} examples)")
@@ -321,3 +579,15 @@ def print_dataset_summary(dataset: List[Dict[str, Any]]) -> None:
     for class_name, count in distribution.items():
         bar = "#" * count
         print(f"  {class_name:12} [{count:2}] {bar}")
+
+
+def export_cormen_dataset_json(filepath: str = 'cormen_dataset.json'):
+    """
+    Exporta el dataset Cormen a un archivo JSON para revision/edicion.
+    
+    Args:
+        filepath: Ruta de salida.
+    """
+    dataset = create_cormen_dataset()
+    save_cormen_dataset(dataset, filepath)
+    print(f"Dataset exported to {filepath} ({len(dataset)} examples)")

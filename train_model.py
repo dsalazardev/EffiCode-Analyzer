@@ -1,208 +1,287 @@
 #!/usr/bin/env python3
 """
-Training script for the neural complexity classifier.
+Training script for the Neural Complexity Classifier.
+
+Pipeline:
+1. Load Cormen pseudocode dataset
+2. Translate each example: Cormen -> Parser -> Python
+3. Extract features from Python AST
+4. Train neural network
 
 Usage:
     python train_model.py
     python train_model.py --dataset custom.json
     python train_model.py --epochs 1000 --no-tuning
+    python train_model.py --export-dataset cormen_data.json
 """
 
 import argparse
 import json
 import os
 import sys
+import io
+from contextlib import redirect_stdout
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
 from Servicios.NeuralClassifier import (
     NeuralComplexityClassifier,
-    create_sample_dataset,
+    FeatureExtractor,
+)
+from Servicios.NeuralClassifier.utils import (
+    create_cormen_dataset,
+    create_extended_dataset,
+    load_cormen_dataset,
+    save_cormen_dataset,
+    print_dataset_summary,
+    COMPLEXITY_MAP,
 )
 
 
-def load_dataset(filepath: str) -> list:
-    with open(filepath, 'r', encoding='utf-8') as f:
-        return json.load(f)
+class MockGrammar:
+    """Mock Grammar para Parser standalone."""
+    def validar_sentencia(self, pseudocodigo: str) -> bool:
+        return True
 
 
-def save_dataset(dataset: list, filepath: str):
-    with open(filepath, 'w', encoding='utf-8') as f:
-        json.dump(dataset, f, indent=2, ensure_ascii=False)
+class MockLLMService:
+    """Mock LLMService para Parser standalone."""
+    pass
 
 
-def generate_extended_dataset() -> list:
-    """Extends base dataset with additional training examples."""
-    base_dataset = create_sample_dataset()
+def create_parser():
+    """
+    Crea instancia de Parser con mocks para entrenamiento standalone.
+    El Parser solo necesita su metodo _translate_pseudocode_to_python.
+    """
+    from Modelos.Parser import Parser
+    
+    grammar = MockGrammar()
+    llm_service = MockLLMService()
+    
+    return Parser(id=1, gramatica=grammar, llm_service=llm_service)
 
-    extended = [
-        {'code': 'return array[index]', 'complexity': 0},
-        {'code': 'temp = a\na = b\nb = temp', 'complexity': 0},
-        {'code': 'return n % 2 == 0', 'complexity': 0},
 
-        {'code': '''
-def find_power(x, n):
-    if n == 0:
-        return 1
-    if n % 2 == 0:
-        half = find_power(x, n // 2)
-        return half * half
-    else:
-        return x * find_power(x, n - 1)
-        ''', 'complexity': 1},
-        {'code': '''
-while low <= high:
-    mid = low + (high - low) // 2
-    if arr[mid] == x:
-        return mid
-    elif arr[mid] < x:
-        low = mid + 1
-    else:
-        high = mid - 1
-        ''', 'complexity': 1},
+def translate_cormen_to_python(pseudocode: str, parser, silent: bool = True) -> str:
+    """
+    Traduce pseudocodigo Cormen a Python usando el Parser.
+    
+    Args:
+        pseudocode: Codigo en formato Cormen.
+        parser: Instancia de Parser.
+        silent: Suprimir prints del Parser.
+        
+    Returns:
+        Codigo Python traducido.
+    """
+    try:
+        if silent:
+            f = io.StringIO()
+            with redirect_stdout(f):
+                ast_obj = parser.parsear(pseudocode)
+            return ast_obj._codigo
+        else:
+            ast_obj = parser.parsear(pseudocode)
+            return ast_obj._codigo
+    except Exception as e:
+        if not silent:
+            print(f"  Warning: Parse failed, using heuristic: {e}")
+        return parser._translate_pseudocode_to_python(pseudocode)
 
-        {'code': '''
-count = 0
-for item in array:
-    if item > threshold:
-        count += 1
-return count
-        ''', 'complexity': 2},
-        {'code': '''
-result = []
-for i in range(n):
-    result.append(arr[i] * 2)
-return result
-        ''', 'complexity': 2},
-        {'code': '''
-prev = 0
-curr = 1
-for i in range(2, n):
-    temp = curr
-    curr = prev + curr
-    prev = temp
-return curr
-        ''', 'complexity': 2},
 
-        {'code': '''
-def heap_sort(arr):
-    build_heap(arr)
-    for i in range(n - 1, 0, -1):
-        arr[0], arr[i] = arr[i], arr[0]
-        heapify(arr, 0, i)
-        ''', 'complexity': 3},
-        {'code': '''
-sorted_arr = sorted(array)
-return sorted_arr
-        ''', 'complexity': 3},
-
-        {'code': '''
-for i in range(n):
-    for j in range(i + 1, n):
-        if arr[i] == arr[j]:
-            duplicates.append(arr[i])
-        ''', 'complexity': 4},
-        {'code': '''
-for i in range(n):
-    for j in range(n - i - 1):
-        if arr[j] > arr[j + 1]:
-            swap(arr, j, j + 1)
-        ''', 'complexity': 4},
-        {'code': '''
-BUBBLE-SORT(A, n)
-    for i = 1 to n - 1
-        for j = 1 to n - i
-            if A[j] > A[j + 1]
-                exchange A[j] with A[j + 1]
-        ''', 'complexity': 4},
-
-        {'code': '''
-def floyd_warshall(graph):
-    for k in range(n):
-        for i in range(n):
-            for j in range(n):
-                dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j])
-        ''', 'complexity': 5},
-
-        {'code': '''
-def solve(items, capacity, index):
-    if index == 0 or capacity == 0:
-        return 0
-    if items[index].weight > capacity:
-        return solve(items, capacity, index - 1)
-    return max(
-        items[index].value + solve(items, capacity - items[index].weight, index - 1),
-        solve(items, capacity, index - 1)
-    )
-        ''', 'complexity': 6},
-        {'code': '''
-def generate_permutations(arr, l, r):
-    if l == r:
-        print(arr)
-    else:
-        for i in range(l, r + 1):
-            arr[l], arr[i] = arr[i], arr[l]
-            generate_permutations(arr, l + 1, r)
-            arr[l], arr[i] = arr[i], arr[l]
-        ''', 'complexity': 6},
-    ]
-
-    return base_dataset + extended
+def prepare_training_data(cormen_dataset: list, parser, verbose: bool = True) -> list:
+    """
+    Prepara datos de entrenamiento traduciendo Cormen -> Python.
+    
+    Args:
+        cormen_dataset: Lista de {'pseudocode': str, 'complexity': str}
+        parser: Instancia de Parser
+        verbose: Mostrar progreso
+        
+    Returns:
+        Lista de {'code': python_code, 'complexity': int_label}
+    """
+    if verbose:
+        print(f"Translating {len(cormen_dataset)} Cormen examples to Python...")
+    
+    training_data = []
+    success_count = 0
+    
+    for i, item in enumerate(cormen_dataset):
+        pseudocode = item.get('pseudocode', item.get('code', ''))
+        complexity_raw = item.get('complexity', 'O(n)')
+        
+        if isinstance(complexity_raw, str):
+            complexity_label = COMPLEXITY_MAP.get(complexity_raw, 2)
+        else:
+            complexity_label = complexity_raw
+        
+        python_code = translate_cormen_to_python(pseudocode, parser, silent=True)
+        
+        if python_code and python_code.strip():
+            training_data.append({
+                'code': python_code,
+                'complexity': complexity_label
+            })
+            success_count += 1
+        else:
+            if verbose:
+                print(f"  Skipped example {i+1}: empty translation")
+    
+    if verbose:
+        print(f"Successfully translated {success_count}/{len(cormen_dataset)} examples")
+    
+    return training_data
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description='Train the neural complexity classifier'
+    arg_parser = argparse.ArgumentParser(
+        description='Train the Neural Complexity Classifier with Cormen pseudocode'
     )
-    parser.add_argument('--dataset', '-d', type=str, default=None)
-    parser.add_argument('--epochs', '-e', type=int, default=500)
-    parser.add_argument('--no-tuning', action='store_true')
-    parser.add_argument('--generate-dataset', type=str, default=None)
-    parser.add_argument('--output', '-o', type=str, default=None)
-
-    args = parser.parse_args()
-
-    if args.generate_dataset:
-        dataset = generate_extended_dataset()
-        save_dataset(dataset, args.generate_dataset)
+    arg_parser.add_argument('--dataset', '-d', type=str, default=None,
+                           help='Path to JSON dataset file')
+    arg_parser.add_argument('--epochs', '-e', type=int, default=500,
+                           help='Training epochs (default: 500)')
+    arg_parser.add_argument('--no-tuning', action='store_true',
+                           help='Skip hyperparameter tuning')
+    arg_parser.add_argument('--export-dataset', type=str, default=None,
+                           help='Export Cormen dataset to JSON file')
+    arg_parser.add_argument('--output', '-o', type=str, default=None,
+                           help='Output path for trained model')
+    arg_parser.add_argument('--raw-python', action='store_true',
+                           help='Skip Cormen translation, use Python code directly')
+    
+    args = arg_parser.parse_args()
+    
+    if args.export_dataset:
+        dataset = create_cormen_dataset()
+        save_cormen_dataset(dataset, args.export_dataset)
+        print(f"Exported {len(dataset)} examples to {args.export_dataset}")
         return
-
+    
+    print("=" * 60)
+    print("Neural Complexity Classifier - Training Pipeline")
+    print("=" * 60)
+    
+    # Step 1: Initialize Parser
+    print("\n[1/4] Initializing Parser...")
+    parser = create_parser()
+    print("  Parser ready")
+    
+    # Step 2: Load dataset
+    print("\n[2/4] Loading dataset...")
     if args.dataset and os.path.exists(args.dataset):
-        dataset = load_dataset(args.dataset)
+        print(f"  Loading from: {args.dataset}")
+        with open(args.dataset, 'r', encoding='utf-8') as f:
+            raw_dataset = json.load(f)
+        
+        if raw_dataset and 'pseudocode' in raw_dataset[0]:
+            cormen_dataset = raw_dataset
+        else:
+            cormen_dataset = [
+                {'pseudocode': item.get('code', item.get('pseudocode', '')), 
+                 'complexity': item.get('complexity', 'O(n)')}
+                for item in raw_dataset
+            ]
     else:
-        dataset = generate_extended_dataset()
-
+        print("  Using built-in extended Cormen dataset")
+        cormen_dataset = create_cormen_dataset()
+        
+        from Servicios.NeuralClassifier.utils import create_extended_dataset as _ext
+        extended = _ext()
+        
+        extended_cormen = []
+        for item in extended:
+            code = item.get('code', '')
+            complexity_int = item.get('complexity', 2)
+            
+            complexity_str = 'O(n)'
+            for k, v in COMPLEXITY_MAP.items():
+                if v == complexity_int:
+                    complexity_str = k
+                    break
+            
+            extended_cormen.append({
+                'pseudocode': code,
+                'complexity': complexity_str
+            })
+        
+        cormen_dataset = extended_cormen
+    
+    print_dataset_summary([
+        {'complexity': COMPLEXITY_MAP.get(item['complexity'], item['complexity'])}
+        for item in cormen_dataset
+    ])
+    
+    # Step 3: Translate Cormen -> Python
+    print("\n[3/4] Translating Cormen to Python...")
+    if args.raw_python:
+        print("  Skipping translation (--raw-python flag)")
+        training_data = [
+            {'code': item.get('pseudocode', item.get('code', '')),
+             'complexity': COMPLEXITY_MAP.get(item['complexity'], item['complexity'])}
+            for item in cormen_dataset
+        ]
+    else:
+        training_data = prepare_training_data(cormen_dataset, parser, verbose=True)
+    
+    if not training_data:
+        print("ERROR: No training data available")
+        sys.exit(1)
+    
+    # Step 4: Train
+    print("\n[4/4] Training Neural Network...")
     classifier = NeuralComplexityClassifier()
     use_tuning = not args.no_tuning
-
+    
+    if use_tuning:
+        print("  Using HyperTuner (Backtracking) for architecture search")
+    else:
+        print("  Using default architecture [32, 16]")
+    
     classifier.train_from_dataset(
-        dataset,
+        training_data,
         use_hypertuning=use_tuning,
         verbose=True
     )
-
+    
+    # Save model
     output_path = args.output or str(classifier.MODEL_PATH)
     classifier.save(output_path)
-
+    print(f"\nModel saved to: {output_path}")
+    
     # Validation
-    test_cases = [
-        ('return x + y', 'O(1)'),
-        ('while n > 0: n = n // 2', 'O(log n)'),
-        ('for i in range(n): sum += arr[i]', 'O(n)'),
-        ('arr.sort()', 'O(n log n)'),
-        ('for i in range(n):\n  for j in range(n):\n    x += 1', 'O(n^2)'),
-        ('for i in range(n):\n  for j in range(n):\n    for k in range(n):\n      x += 1', 'O(n^3)'),
+    print("\n" + "=" * 60)
+    print("Validation Tests")
+    print("=" * 60)
+    
+    test_cases_cormen = [
+        ('SIMPLE-RETURN(x)\n    return x', 'O(1)'),
+        ('HALVE(n)\n    while n > 1 do\n        n ← n div 2', 'O(log n)'),
+        ('SUM(A, n)\n    s ← 0\n    for i ← 1 to n do\n        s ← s + A[i]\n    return s', 'O(n)'),
+        ('NESTED(A, n)\n    for i ← 1 to n do\n        for j ← 1 to n do\n            A[i][j] ← 0', 'O(n^2)'),
     ]
-
-    correct = sum(
-        1 for code, expected in test_cases
-        if classifier.classify(code)[0] == expected
-    )
-
-    if correct < len(test_cases) // 2:
-        # FIXME: Model accuracy below acceptable threshold
-        pass
+    
+    print("\nTesting with Cormen pseudocode:")
+    correct = 0
+    for pseudocode, expected in test_cases_cormen:
+        python_code = translate_cormen_to_python(pseudocode, parser, silent=True)
+        predicted, confidence, _ = classifier.classify(python_code)
+        
+        expected_normalized = expected.replace('^2', '²').replace('^3', '³')
+        predicted_normalized = predicted.replace('^2', '²').replace('^3', '³')
+        
+        match = expected_normalized == predicted_normalized or expected == predicted
+        status = "PASS" if match else "FAIL"
+        if match:
+            correct += 1
+        
+        func_name = pseudocode.split('(')[0].split('\n')[0]
+        print(f"  [{status}] {func_name}: {predicted} (expected {expected}, conf={confidence:.2f})")
+    
+    print(f"\nAccuracy: {correct}/{len(test_cases_cormen)} ({100*correct/len(test_cases_cormen):.1f}%)")
+    print("\nTraining complete!")
 
 
 if __name__ == '__main__':
