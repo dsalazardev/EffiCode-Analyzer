@@ -142,6 +142,9 @@ class RecursiveAnalyzerService:
     def _clasificar_tipo_recursion(self, ast_obj: 'AST', nombre_funcion: str) -> str:
         """
         Clasifica el tipo de recursión: lineal, binaria, múltiple, etc.
+        
+        IMPORTANTE: Detecta patrones especiales como exponenciación rápida
+        donde hay múltiples caminos pero cada uno tiene máximo 1 llamada.
         """
         llamadas_recursivas = []
         for node in ast.walk(ast_obj._arbol):
@@ -154,6 +157,13 @@ class RecursiveAnalyzerService:
         
         llamadas_por_camino = self._contar_llamadas_por_camino(ast_obj, nombre_funcion)
         max_llamadas_en_camino = max(llamadas_por_camino.values()) if llamadas_por_camino else 0
+        
+        # NUEVO: Detectar patrón de exponenciación rápida (repeated squaring)
+        # Característica: múltiples caminos, cada uno con max 1 llamada,
+        # y uno de los caminos usa n/2 o n//2
+        if max_llamadas_en_camino == 1 and len(llamadas_por_camino) > 1:
+            if self._es_patron_exponenciacion_rapida(ast_obj, nombre_funcion):
+                return "recursion_logaritmica"  # NUEVO tipo
         
         if max_llamadas_en_camino == 2:
             if self._es_patron_fibonacci(ast_obj, nombre_funcion):
@@ -171,6 +181,37 @@ class RecursiveAnalyzerService:
             return "recursion_multiple_compleja"
         
         return "recursion_general"
+
+    def _es_patron_exponenciacion_rapida(self, ast_obj: 'AST', nombre_funcion: str) -> bool:
+        """
+        Detecta el patrón de exponenciación rápida (repeated squaring):
+        - Al menos un camino con división por 2 (n/2, n//2, n div 2)
+        - Otro camino con decremento (n-1)
+        - Cada camino tiene máximo 1 llamada recursiva
+        
+        Este patrón tiene complejidad O(log n) porque aunque hay un camino
+        con n-1, siempre es seguido por un camino con n/2.
+        
+        Ejemplos: POWER, exponenciación modular, multiplicación rusa
+        """
+        tiene_division_mitad = False
+        tiene_decremento = False
+        
+        for node in ast.walk(ast_obj._arbol):
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+                if node.func.id == nombre_funcion:
+                    for arg in node.args:
+                        arg_str = ast.unparse(arg).lower().replace(" ", "")
+                        
+                        # Detectar n/2, n//2, n div 2
+                        if "//2" in arg_str or "/2" in arg_str or "div2" in arg_str:
+                            tiene_division_mitad = True
+                        # Detectar n-1
+                        elif "-1" in arg_str and ("n-1" in arg_str or arg_str.endswith("-1")):
+                            tiene_decremento = True
+        
+        # Es exponenciación rápida si tiene ambos patrones
+        return tiene_division_mitad and tiene_decremento
 
     def _es_patron_fibonacci(self, ast_obj: 'AST', nombre_funcion: str) -> bool:
         """
@@ -401,6 +442,7 @@ class RecursiveAnalyzerService:
         - Fibonacci: T(n) = T(n-1) + T(n-2) + f(n) -> Θ(φ^n)
         - Hanoi: T(n) = 2T(n-1) + f(n) -> Θ(2^n)
         - Divide y vencerás: T(n) = aT(n/b) + f(n) -> depende de caso
+        - Exponenciación rápida: T(n) = T(n/2) + O(1) -> Θ(log n)
         """
         patron_recursivo = self.detectar_patron_recursivo(ast_obj)
         division_info = patron_recursivo["division"]
@@ -413,7 +455,16 @@ class RecursiveAnalyzerService:
         # Primero: detectar tipo de división (n-1, n/2, etc.)
         es_division_lineal = division_info["tipo"] in ["n_minus_1", "n_minus_k"]
         
-        if patron_recursivo["tipo"] == "recursion_lineal":
+        # NUEVO: Manejo especial para exponenciación rápida (repeated squaring)
+        if patron_recursivo["tipo"] == "recursion_logaritmica":
+            # Exponenciación rápida: aunque hay un camino con n-1,
+            # el comportamiento dominante es T(n) = T(n/2) + O(1) -> Θ(log n)
+            a = 1
+            b = 2
+            tipo_especial = "logaritmica"
+            f_n = "1"
+        
+        elif patron_recursivo["tipo"] == "recursion_lineal":
             # Una sola llamada recursiva con decremento
             a = 1
             b = 1
@@ -451,7 +502,7 @@ class RecursiveAnalyzerService:
             a = patron_recursivo["parametros"]["total_llamadas"]
         
         # Para divide y vencerás (no lineal), detectar el factor de división
-        if not es_division_lineal and patron_recursivo["tipo"] not in ["recursion_lineal", "recursion_exponencial_fibonacci"]:
+        if not es_division_lineal and patron_recursivo["tipo"] not in ["recursion_lineal", "recursion_exponencial_fibonacci", "recursion_logaritmica"]:
             if division_info["tipo"] == "mitad":
                 b = 2
             elif division_info["tipo"] == "tercio":
@@ -465,7 +516,10 @@ class RecursiveAnalyzerService:
         f_n = self._detectar_costo_no_recursivo(ast_obj, patron_recursivo["tipo"])
         
         # Generar ecuación según el tipo
-        if tipo_especial == "fibonacci":
+        if tipo_especial == "logaritmica":
+            # Exponenciación rápida: dominado por división a la mitad
+            ecuacion = f"T(n) = T(n/2) + O({f_n})"
+        elif tipo_especial == "fibonacci":
             ecuacion = f"T(n) = T(n-1) + T(n-2) + O({f_n})"
         elif tipo_especial == "n_minus_1":
             if a > 1:
