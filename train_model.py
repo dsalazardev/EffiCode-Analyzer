@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Training script for the Neural Complexity Classifier.
 
@@ -31,8 +30,6 @@ from Servicios.NeuralClassifier import (
 )
 from Servicios.NeuralClassifier.utils import (
     create_cormen_dataset,
-    create_extended_dataset,
-    load_cormen_dataset,
     save_cormen_dataset,
     print_dataset_summary,
     COMPLEXITY_MAP,
