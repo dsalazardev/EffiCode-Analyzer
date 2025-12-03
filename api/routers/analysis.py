@@ -124,12 +124,12 @@ async def analyze_pseudocode(
     """
     try:
         pseudocode = request.pseudocode
-        print(f"📝 Analyzing pseudocode:\n{pseudocode}")
+        print(f"Analyzing pseudocode:\n{pseudocode}")
 
         # Step 1: Parse pseudocode to AST
         ast_obj = services.parser.parsear(pseudocode)
         
-        # Step 2: Create Algorithm object and analyze complexity
+        # Step 2: Create Algorithm object
         algoritmo = Algoritmo(
             id=1, 
             codigo_fuente=pseudocode, 
@@ -137,14 +137,15 @@ async def analyze_pseudocode(
         )
         algoritmo.addAST(ast_obj)
         
-        resultado_complejidad = services.analizador.analizar(algoritmo)
+        # Step 3: ANÁLISIS HÍBRIDO (Neural + Simbólico combinados)
+        resultado_complejidad = services.analizador.analizar_hibrido(algoritmo)
         
-        # Step 3: Generate AST Image (NO esperamos IA aquí)
+        # Step 4: Generate AST Image
         ast_image_base64 = generate_ast_image_base64(ast_obj)
 
-        print(f"Analysis complete: {resultado_complejidad.notacion_o}")
+        print(f"Hybrid analysis complete: {resultado_complejidad.notacion_o}")
         
-        # Retornamos inmediatamente SIN esperar validación IA
+        # Retornamos con información híbrida incluida
         return AnalysisResponse(
             complexity_o=resultado_complejidad.notacion_o,
             complexity_omega=resultado_complejidad.notacion_omega,

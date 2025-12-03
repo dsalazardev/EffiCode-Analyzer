@@ -424,3 +424,180 @@ class Analizador:
             }
         )
 
+    def analizar_hibrido(self, algoritmo: Algoritmo) -> Complejidad:
+        """
+        Sistema HÍBRIDO: Combina Red Neuronal + Análisis Simbólico.
+        
+        Estrategia:
+        1. Ejecuta AMBOS análisis en paralelo conceptual
+        2. Si ambos coinciden -> Alta confianza
+        3. Si difieren -> Usa el simbólico pero reporta la discrepancia
+        4. Si uno falla -> Usa el que funcione
+        
+        Args:
+            algoritmo: Algoritmo a analizar
+            
+        Returns:
+            Complejidad con información combinada de ambos métodos
+        """
+        resultado_simbolico = None
+        resultado_neural = None
+        
+        # Paso 1: Análisis Simbólico (siempre intentar)
+        try:
+            resultado_simbolico = self.analizar_auto(algoritmo)
+        except Exception as e:
+            print(f"Symbolic analysis failed: {e}")
+        
+        # Paso 2: Análisis Neural (si está disponible)
+        try:
+            resultado_neural = self.clasificar_con_neural(algoritmo.codigo_fuente)
+        except Exception as e:
+            print(f"Neural analysis failed: {e}")
+        
+        # Paso 3: Combinar resultados
+        return self._combinar_resultados(resultado_simbolico, resultado_neural, algoritmo)
+    
+    def _combinar_resultados(
+        self, 
+        simbolico: Optional[Complejidad], 
+        neural: Optional[Dict[str, Any]],
+        algoritmo: Algoritmo
+    ) -> Complejidad:
+        """
+        Combina los resultados del análisis simbólico y neural.
+        
+        Prioridades:
+        1. Ambos disponibles y coinciden -> Mayor confianza
+        2. Ambos disponibles pero difieren -> Usa simbólico, reporta discrepancia
+        3. Solo simbólico disponible -> Usa simbólico
+        4. Solo neural disponible -> Usa neural
+        5. Ninguno disponible -> Error
+        """
+        # Caso: Ninguno funciona
+        if simbolico is None and neural is None:
+            return Complejidad(
+                id=self._id,
+                notacion_o="O(?)",
+                notacion_omega="Ω(?)",
+                notacion_theta="Θ(?)",
+                justificacion="Error: No se pudo realizar el análisis con ningún método.",
+                justification_data={'error': 'both_methods_failed'}
+            )
+        
+        # Caso: Solo neural disponible
+        if simbolico is None and neural is not None:
+            return self._crear_complejidad_desde_neural(neural, fallback_reason="symbolic_failed")
+        
+        # Caso: Solo simbólico disponible
+        if simbolico is not None and neural is None:
+            if simbolico.justification_data:
+                simbolico.justification_data['hybrid_info'] = {
+                    'neural_available': False,
+                    'method_used': 'symbolic_only',
+                    'reason': 'neural_not_available_or_failed'
+                }
+            return simbolico
+        
+        # Caso: Ambos disponibles - COMPARAR
+        comp_simbolica = simbolico.notacion_o
+        comp_neural = neural['complejidad_predicha']
+        confianza_neural = neural['confianza']
+        
+        # Normalizar para comparación
+        coinciden = self._normalizar_complejidad(comp_simbolica) == self._normalizar_complejidad(comp_neural)
+        
+        # Agregar información híbrida al resultado simbólico
+        hybrid_info = {
+            'neural_available': True,
+            'neural_prediction': comp_neural,
+            'neural_confidence': confianza_neural,
+            'neural_probabilities': neural['probabilidades'],
+            'methods_agree': coinciden,
+            'method_used': 'hybrid'
+        }
+        
+        if coinciden:
+            # Ambos coinciden -> ALTA CONFIANZA
+            hybrid_info['consensus'] = 'ALTA'
+            hybrid_info['consensus_message'] = (
+                f"Ambos métodos coinciden en {comp_simbolica}. "
+                f"Confianza neural: {confianza_neural:.1%}"
+            )
+            justificacion_extra = (
+                f"\n\n{'='*50}\n"
+                f"VALIDACIÓN HÍBRIDA: CONSENSO\n"
+                f"{'='*50}\n"
+                f"Red Neuronal: {comp_neural} (confianza {confianza_neural:.1%})\n"
+                f"Análisis Simbólico: {comp_simbolica}\n"
+                f"Resultado: COINCIDEN - Alta confianza en el resultado\n"
+            )
+        else:
+            # No coinciden -> Reportar discrepancia
+            hybrid_info['consensus'] = 'DISCREPANCIA'
+            hybrid_info['consensus_message'] = (
+                f"Discrepancia detectada. "
+                f"Simbólico: {comp_simbolica}, Neural: {comp_neural} ({confianza_neural:.1%}). "
+                f"Se usa el análisis simbólico por ser más riguroso."
+            )
+            justificacion_extra = (
+                f"\n\n{'='*50}\n"
+                f"VALIDACIÓN HÍBRIDA: DISCREPANCIA\n"
+                f"{'='*50}\n"
+                f"Red Neuronal: {comp_neural} (confianza {confianza_neural:.1%})\n"
+                f"Análisis Simbólico: {comp_simbolica}\n"
+                f"Resultado: Se prioriza el análisis simbólico\n"
+                f"Nota: La red puede necesitar más entrenamiento para este patrón\n"
+            )
+        
+        # Actualizar el resultado simbólico con info híbrida
+        if simbolico.justification_data:
+            simbolico.justification_data['hybrid_info'] = hybrid_info
+        else:
+            simbolico.justification_data = {'hybrid_info': hybrid_info}
+        
+        simbolico.justificacion_matematica += justificacion_extra
+        
+        return simbolico
+    
+    def _normalizar_complejidad(self, complejidad: str) -> str:
+        """Normaliza notación de complejidad para comparación."""
+        return complejidad.replace('²', '^2').replace('³', '^3').replace(' ', '').upper()
+    
+    def _crear_complejidad_desde_neural(
+        self, 
+        neural: Dict[str, Any], 
+        fallback_reason: str = ""
+    ) -> Complejidad:
+        """Crea objeto Complejidad desde predicción neural."""
+        comp = neural['complejidad_predicha']
+        confianza = neural['confianza']
+        
+        justificacion = (
+            f"Análisis realizado por Neural Algorithmix (Red Neuronal MLP).\n"
+            f"Confianza: {confianza:.1%}\n"
+        )
+        
+        if fallback_reason:
+            justificacion = f"[Fallback: {fallback_reason}]\n\n" + justificacion
+        
+        justificacion += "\nDistribución de probabilidades:\n"
+        for c, prob in sorted(neural['probabilidades'].items(), key=lambda x: -x[1]):
+            bar = "█" * int(prob * 20)
+            justificacion += f"  {c}: {prob:.1%} {bar}\n"
+        
+        return Complejidad(
+            id=self._id,
+            notacion_o=comp,
+            notacion_omega=comp,
+            notacion_theta=comp,
+            justificacion=justificacion,
+            justification_data={
+                'method': 'neural_fallback',
+                'fallback_reason': fallback_reason,
+                'confidence': confianza,
+                'probabilities': neural['probabilidades']
+            }
+        )
+
+
