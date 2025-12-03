@@ -189,7 +189,7 @@ class Analizador:
         self._complejidad = complejidad
         return complejidad
 
-    def analizar_recursivo(self, algoritmo: Algoritmo) -> Complejidad:
+    def analizar_recursivo(self, algoritmo: Algoritmo, usar_llm: bool = False) -> Complejidad:
         """
         Analiza algoritmos RECURSIVOS usando múltiples métodos:
         
@@ -202,9 +202,15 @@ class Analizador:
            - Cambio de variables
            - Funciones generatrices
            
-        2. LLM (si disponible): Para análisis de caso promedio y validación
+        2. LLM (OPCIONAL): Para análisis de caso promedio y validación
+           - Solo se llama si usar_llm=True o si RecurrenceSolver falla
+           - Esto evita bloqueos innecesarios
         
         Incluye análisis de caso promedio basado en Cormen Cap. 5 y 7.
+        
+        Args:
+            algoritmo: Algoritmo con AST ya generado
+            usar_llm: Si True, usa LLM para enriquecer el análisis (más lento)
         """
         if not algoritmo.arbol_sintactico:
             raise ValueError("El algoritmo no tiene un AST. Ejecute el parser primero.")
@@ -212,18 +218,31 @@ class Analizador:
         if not self._recursive_service.detectar_recursividad(algoritmo.arbol_sintactico):
             raise ValueError("El algoritmo no parece ser recursivo. Use 'analizar' para iterativos.")
 
-        # 1. Generar ecuación de recurrencia
+        # 1. Generar ecuación de recurrencia (RÁPIDO - local)
         analisis_recurrencia = self._recursive_service.generar_ecuacion_recurrencia(algoritmo.arbol_sintactico)
         
-        # 2. NUEVO: Resolver matemáticamente usando RecurrenceSolver (7 métodos de Cormen)
+        # 2. Resolver matemáticamente usando RecurrenceSolver (RÁPIDO - local)
         solucion_matematica = self._recursive_service.resolver_recurrencia_matematica(algoritmo.arbol_sintactico)
         
-        # 3. Usar LLM para análisis adicional (caso promedio detallado, si disponible)
-        solucion_llm = self._recursive_service.resolver_recurrencia_con_llm(
-            analisis_recurrencia["ecuacion"],
-            analisis_recurrencia["patron"],
-            algoritmo.codigo_fuente
+        # 3. OPTIMIZACIÓN: Solo usar LLM si se solicita explícitamente O si el solver falla
+        solucion_exitosa = (
+            solucion_matematica.get('complejidad_final') and 
+            solucion_matematica['complejidad_final'] != 'No determinada'
         )
+        
+        if usar_llm or not solucion_exitosa:
+            # Usar LLM solo cuando es necesario (LENTO - API externa)
+            solucion_llm = self._recursive_service.resolver_recurrencia_con_llm(
+                analisis_recurrencia["ecuacion"],
+                analisis_recurrencia["patron"],
+                algoritmo.codigo_fuente
+            )
+        else:
+            # Generar solución local sin LLM (RÁPIDO)
+            solucion_llm = self._recursive_service.resolver_recurrencia_local(
+                analisis_recurrencia["ecuacion"],
+                analisis_recurrencia["patron"]
+            )
         
         # 4. Combinar resultados: priorizar solución matemática, enriquecer con LLM
         if solucion_matematica.get('complejidad_final') and solucion_matematica['complejidad_final'] != 'No determinada':
@@ -457,12 +476,16 @@ class Analizador:
             return False
         return self._recursive_service.detectar_recursividad(algoritmo.arbol_sintactico)
 
-    def analizar_auto(self, algoritmo: Algoritmo) -> Complejidad:
+    def analizar_auto(self, algoritmo: Algoritmo, usar_llm: bool = False) -> Complejidad:
         """
         Detecta automáticamente el tipo de algoritmo y aplica el análisis correspondiente.
+        
+        Args:
+            algoritmo: Algoritmo con AST generado
+            usar_llm: Si True, usa LLM para enriquecer análisis recursivos (más lento)
         """
         if self.es_recursivo(algoritmo):
-            return self.analizar_recursivo(algoritmo)
+            return self.analizar_recursivo(algoritmo, usar_llm=usar_llm)
         else:
             return self.analizar(algoritmo)
 

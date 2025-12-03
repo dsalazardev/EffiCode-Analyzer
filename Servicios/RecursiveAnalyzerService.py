@@ -33,12 +33,17 @@ class RecursiveAnalyzerService:
     
     NUEVO: Integra RecurrenceSolver para resolver matemáticamente
     cualquier ecuación de recurrencia usando 7 métodos de Cormen.
+    
+    OPTIMIZACIÓN: Cache interno para evitar recálculos costosos.
     """
 
     def __init__(self, llm_service: 'LLMService' = None):
         self._llm_service = llm_service
         # Inicializar el solver matemático de recurrencias
         self._recurrence_solver = RecurrenceSolver()
+        # Cache para resultados de análisis (evita recálculos)
+        self._cache_analisis: Dict[str, Dict[str, Any]] = {}
+        self._cache_ecuaciones: Dict[str, Dict[str, Any]] = {}
 
     @property
     def llm_service(self) -> 'LLMService':
@@ -286,7 +291,12 @@ class RecursiveAnalyzerService:
         # 2. Generar la ecuación de recurrencia
         ecuacion_info = self.generar_ecuacion_recurrencia(ast_obj)
         
-        # 3. Resolver usando el solver matemático
+        # 3. Verificar cache antes de resolver
+        cache_key = f"{ecuacion_info['a']}_{ecuacion_info['b']}_{ecuacion_info['f_n']}_{ecuacion_info.get('tipo_especial')}"
+        if cache_key in self._cache_analisis:
+            return self._cache_analisis[cache_key]
+        
+        # 4. Resolver usando el solver matemático
         resultado_solver = self._recurrence_solver.solve(
             a=ecuacion_info['a'],
             b=ecuacion_info['b'],
@@ -294,8 +304,8 @@ class RecursiveAnalyzerService:
             recurrence_type=ecuacion_info.get('tipo_especial')
         )
         
-        # 4. Combinar con información del patrón
-        return {
+        # 5. Combinar con información del patrón
+        resultado = {
             "ecuacion": ecuacion_info['ecuacion'],
             "patron_detectado": patron_recursivo,
             "parametros_recurrencia": {
@@ -313,6 +323,10 @@ class RecursiveAnalyzerService:
                 ecuacion_info, patron_recursivo, resultado_solver
             )
         }
+        
+        # 6. Guardar en cache
+        self._cache_analisis[cache_key] = resultado
+        return resultado
     
     def _generar_justificacion_completa(
         self, 
