@@ -164,6 +164,10 @@ class RecursiveAnalyzerService:
         if max_llamadas_en_camino == 1 and len(llamadas_por_camino) > 1:
             if self._es_patron_exponenciacion_rapida(ast_obj, nombre_funcion):
                 return "recursion_logaritmica"  # NUEVO tipo
+            # NUEVO: Detectar búsqueda binaria y similares
+            # Ramas mutuamente excluyentes que dividen el espacio de búsqueda
+            if self._es_patron_busqueda_binaria(ast_obj, nombre_funcion):
+                return "recursion_logaritmica"
         
         if max_llamadas_en_camino == 2:
             if self._es_patron_fibonacci(ast_obj, nombre_funcion):
@@ -212,6 +216,57 @@ class RecursiveAnalyzerService:
         
         # Es exponenciación rápida si tiene ambos patrones
         return tiene_division_mitad and tiene_decremento
+
+    def _es_patron_busqueda_binaria(self, ast_obj: 'AST', nombre_funcion: str) -> bool:
+        """
+        Detecta el patrón de búsqueda binaria y algoritmos similares:
+        - Múltiples ramas mutuamente excluyentes (if/else)
+        - Cada rama tiene máximo 1 llamada recursiva
+        - Los argumentos usan patrones como mid-1, mid+1, low, high
+        - O reducen el rango de búsqueda a aproximadamente la mitad
+        
+        Características clave:
+        - Calcula un punto medio (mid, middle, pivot)
+        - Las llamadas usan variantes de ese punto medio
+        
+        Este patrón tiene complejidad O(log n) porque cada llamada
+        reduce el espacio de búsqueda a la mitad.
+        
+        Ejemplos: BINARY-SEARCH, búsqueda en BST, búsqueda ternaria
+        """
+        tiene_calculo_mid = False
+        usa_mid_en_llamadas = False
+        
+        # Buscar si hay un cálculo de punto medio
+        for node in ast.walk(ast_obj._arbol):
+            if isinstance(node, ast.Assign):
+                for target in node.targets:
+                    if isinstance(target, ast.Name):
+                        nombre_var = target.id.lower()
+                        if any(x in nombre_var for x in ['mid', 'middle', 'pivot', 'centro']):
+                            tiene_calculo_mid = True
+                            break
+        
+        # Buscar si las llamadas recursivas usan mid+1, mid-1, o similares
+        patrones_division_rango = ['mid', 'middle', 'pivot', '+1', '-1', 'low', 'high']
+        llamadas_con_division = 0
+        total_llamadas = 0
+        
+        for node in ast.walk(ast_obj._arbol):
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+                if node.func.id == nombre_funcion:
+                    total_llamadas += 1
+                    args_str = ' '.join(ast.unparse(arg).lower() for arg in node.args)
+                    
+                    # Verificar si usa patrones de división de rango
+                    if any(patron in args_str for patron in patrones_division_rango):
+                        llamadas_con_division += 1
+        
+        usa_mid_en_llamadas = llamadas_con_division >= 1 and total_llamadas >= 2
+        
+        # Es búsqueda binaria si tiene mid Y las llamadas dividen el rango
+        # O si todas las llamadas usan patrones de división de rango
+        return (tiene_calculo_mid and usa_mid_en_llamadas) or (llamadas_con_division == total_llamadas and total_llamadas >= 2)
 
     def _es_patron_fibonacci(self, ast_obj: 'AST', nombre_funcion: str) -> bool:
         """
@@ -384,25 +439,25 @@ class RecursiveAnalyzerService:
         complejidad = solucion.get('complexity', 'No determinada')
         
         justificacion = f"""
-══════════════════════════════════════════════════════════════════
-                ANÁLISIS DE RECURRENCIA MATEMÁTICO
-              (Basado en Cormen et al., 4ª edición)
-══════════════════════════════════════════════════════════════════
+        ══════════════════════════════════════════════════════════════════
+                        ANÁLISIS DE RECURRENCIA MATEMÁTICO
+                    (Basado en Cormen et al., 4ª edición)
+        ══════════════════════════════════════════════════════════════════
 
-📊 TIPO DE RECURSIÓN DETECTADA: {tipo_recursion}
+        📊 TIPO DE RECURSIÓN DETECTADA: {tipo_recursion}
 
-📐 ECUACIÓN DE RECURRENCIA:
-   {ecuacion}
+        📐 ECUACIÓN DE RECURRENCIA:
+        {ecuacion}
 
-   Donde:
-   • a = {ecuacion_info['a']} (número de subproblemas)
-   • b = {ecuacion_info['b']} (factor de división)
-   • f(n) = O({ecuacion_info['f_n']}) (trabajo no recursivo)
+        Donde:
+        • a = {ecuacion_info['a']} (número de subproblemas)
+        • b = {ecuacion_info['b']} (factor de división)
+        • f(n) = O({ecuacion_info['f_n']}) (trabajo no recursivo)
 
-🔧 MÉTODO DE SOLUCIÓN: {metodo}
+        🔧 MÉTODO DE SOLUCIÓN: {metodo}
 
-📈 COMPLEJIDAD FINAL: {complejidad}
-"""
+        📈 COMPLEJIDAD FINAL: {complejidad}
+        """
         
         # Agregar pasos de resolución si existen
         pasos = solucion.get('solution_steps', [])
@@ -423,13 +478,13 @@ class RecursiveAnalyzerService:
         
         # Agregar referencias a Cormen
         justificacion += f"""
-══════════════════════════════════════════════════════════════════
-📚 REFERENCIAS:
-   • Introduction to Algorithms, Cormen et al., 4ª edición
-   • Capítulo 4: Divide y Vencerás
-   • Secciones 4.3-4.6: Métodos de Resolución de Recurrencias
-══════════════════════════════════════════════════════════════════
-"""
+        ══════════════════════════════════════════════════════════════════
+        📚 REFERENCIAS:
+        • Introduction to Algorithms, Cormen et al., 4ª edición
+        • Capítulo 4: Divide y Vencerás
+        • Secciones 4.3-4.6: Métodos de Resolución de Recurrencias
+        ══════════════════════════════════════════════════════════════════
+        """
         
         return justificacion
 
@@ -726,51 +781,51 @@ class RecursiveAnalyzerService:
             return self.resolver_recurrencia_local(ecuacion, patron)
         
         prompt = f"""
-Eres un experto en análisis de algoritmos del libro "Introduction to Algorithms" (Cormen et al.).
+            Eres un experto en análisis de algoritmos del libro "Introduction to Algorithms" (Cormen et al.).
 
-**Pseudocódigo a analizar:**
-```pseudocode
-{pseudocodigo}
-```
+            **Pseudocódigo a analizar:**
+            ```pseudocode
+            {pseudocodigo}
+            ```
 
-Patrón detectado automáticamente:
-- Tipo de recursión: {patron['tipo']}
-- División del problema: {patron['division']['tipo']}
-- Factor de división: {patron['division']['factor']}
+            Patrón detectado automáticamente:
+            - Tipo de recursión: {patron['tipo']}
+            - División del problema: {patron['division']['tipo']}
+            - Factor de división: {patron['division']['factor']}
 
-Ecuación de recurrencia generada:
-{ecuacion}
+            Ecuación de recurrencia generada:
+            {ecuacion}
 
-Instrucciones:
-1. Resuelve la ecuación de recurrencia usando los métodos apropiados (Teorema Maestro, sustitución, árbol de recursión)
-2. Proporciona las cotas asintóticas EXACTAS para:
-   - **Peor caso (O)**: cota superior
-   - **Mejor caso (Ω)**: cota inferior  
-   - **Caso promedio (E[T(n)])**: usando análisis probabilístico con variables aleatorias indicadoras
-3. Para el CASO PROMEDIO (Capítulo 5 y 7 de Cormen):
-   - Define la distribución de probabilidad asumida (ej. permutaciones uniformes)
-   - Usa variables indicadoras X_ij para contar operaciones
-   - Aplica E[X] = Σ E[X_i] (linealidad de la esperanza)
-4. Incluye referencias específicas a "Introduction to Algorithms" (capítulo, sección)
-5. Para Quicksort, el caso promedio es Θ(n lg n) aunque el peor sea Θ(n²)
+            Instrucciones:
+            1. Resuelve la ecuación de recurrencia usando los métodos apropiados (Teorema Maestro, sustitución, árbol de recursión)
+            2. Proporciona las cotas asintóticas EXACTAS para:
+            - **Peor caso (O)**: cota superior
+            - **Mejor caso (Ω)**: cota inferior  
+            - **Caso promedio (E[T(n)])**: usando análisis probabilístico con variables aleatorias indicadoras
+            3. Para el CASO PROMEDIO (Capítulo 5 y 7 de Cormen):
+            - Define la distribución de probabilidad asumida (ej. permutaciones uniformes)
+            - Usa variables indicadoras X_ij para contar operaciones
+            - Aplica E[X] = Σ E[X_i] (linealidad de la esperanza)
+            4. Incluye referencias específicas a "Introduction to Algorithms" (capítulo, sección)
+            5. Para Quicksort, el caso promedio es Θ(n lg n) aunque el peor sea Θ(n²)
 
-Formato de respuesta JSON:
-{{
-    "notacion_o": "O(...)",
-    "notacion_omega": "Ω(...)",
-    "notacion_theta": "Θ(...)",
-    "caso_promedio": {{
-        "notacion": "E[T(n)] = Θ(...)",
-        "distribucion_asumida": "Descripción de la distribución probabilística",
-        "constante_factor": "Factor constante si aplica (ej. n²/4 vs n²/2)"
-    }},
-    "justificacion_matematica": "Explicación detallada incluyendo caso promedio...",
-    "referencias": "Capítulo X, Sección Y",
-    "metodo_utilizado": "Teorema Maestro/Método de Sustitución/Variables Indicadoras"
-}}
+            Formato de respuesta JSON:
+            {{
+                "notacion_o": "O(...)",
+                "notacion_omega": "Ω(...)",
+                "notacion_theta": "Θ(...)",
+                "caso_promedio": {{
+                    "notacion": "E[T(n)] = Θ(...)",
+                    "distribucion_asumida": "Descripción de la distribución probabilística",
+                    "constante_factor": "Factor constante si aplica (ej. n²/4 vs n²/2)"
+                }},
+                "justificacion_matematica": "Explicación detallada incluyendo caso promedio...",
+                "referencias": "Capítulo X, Sección Y",
+                "metodo_utilizado": "Teorema Maestro/Método de Sustitución/Variables Indicadoras"
+            }}
 
-Responde ÚNICAMENTE con el JSON válido, sin texto adicional.
-"""
+            Responde ÚNICAMENTE con el JSON válido, sin texto adicional.
+            """
             
         try:
             respuesta = self._llm_service.analizar_complejidad(prompt)
