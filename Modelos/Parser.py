@@ -233,6 +233,16 @@ class Parser:
             condition = self._fix_comparison_operators(match.group(1).strip())
             return f'while {condition}:'
         
+        # REPEAT (inicio del bloque - se convierte en while True)
+        if line.lower().strip() == 'repeat':
+            return 'while True:'
+        
+        # UNTIL (condicion) - se convierte en if condicion: break
+        match = re.match(r'^until\s+(.+?)\s*$', line, re.IGNORECASE)
+        if match:
+            condition = self._fix_comparison_operators(match.group(1).strip())
+            return f'if {condition}:\n        break'
+        
         # IF ... THEN (con then explícito)
         match = re.match(r'^if\s+(.+?)\s+then\s*$', line, re.IGNORECASE)
         if match:

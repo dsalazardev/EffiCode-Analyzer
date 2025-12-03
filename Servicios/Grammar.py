@@ -28,6 +28,7 @@ class Grammar:
                   | if_sentencia
                   | for_sentencia
                   | while_sentencia
+                  | repeat_sentencia
                   | call_funcion
                   | return_sentencia
 
@@ -36,6 +37,7 @@ class Grammar:
         if_sentencia: "if" condicion "then" sentencias ("else" sentencias)?
         for_sentencia: "for" IDENTIFICADOR "←" expresion ("to" | "downto") expresion "do" sentencias
         while_sentencia: "while" condicion "do" sentencias
+        repeat_sentencia: "repeat" sentencias "until" condicion
 
         // Un bloque de sentencias es simplemente una o más sentencias.
         // La indentación de Cormen se modela permitiendo secuencias de sentencias.
