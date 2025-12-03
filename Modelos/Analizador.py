@@ -348,20 +348,33 @@ class Analizador:
             ]
         
         elif tipo_recursion == "recursion_binaria":
+            # Extraer info de la ecuación para ser más específico
+            ecuacion = analisis_recurrencia.get('ecuacion', 'T(n) = 2T(n/2) + f(n)')
+            a = analisis_recurrencia.get('a', 2)
+            b = analisis_recurrencia.get('b', 2)
+            f_n = analisis_recurrencia.get('f_n', 'n')
+            
             return [
                 {
                     'step': 1,
-                    'title': 'Mejor caso: División balanceada',
-                    'description': 'El mejor caso ocurre cuando la división siempre es perfectamente balanceada.',
-                    'latex': 'T(n) = 2T(n/2) + \\Theta(n)',
-                    'explanation': 'Aplica para MergeSort, donde la división siempre es n/2.'
+                    'title': 'Análisis del mejor caso',
+                    'description': f'Para la recurrencia {ecuacion}, analizamos el mejor caso.',
+                    'latex': f'T(n) = {a}T(n/{b}) + O({f_n})',
+                    'explanation': 'En algoritmos de división binaria, el mejor caso depende de la estructura del problema.'
                 },
                 {
                     'step': 2,
-                    'title': 'Solución del mejor caso',
-                    'description': 'Por el Teorema Maestro (Caso 2), el mejor caso es Θ(n lg n).',
+                    'title': 'Aplicar Teorema Maestro',
+                    'description': f'Comparamos f(n) = {f_n} con n^(log_{b} {a}) para determinar la complejidad.',
+                    'latex': f'n^{{\\log_{{{b}}} {a}}}',
+                    'explanation': 'El Teorema Maestro determina la complejidad según la relación entre f(n) y n^(log_b a).'
+                },
+                {
+                    'step': 3,
+                    'title': 'Conclusión del mejor caso',
+                    'description': 'Para algoritmos de división y conquista, el mejor caso suele ser igual al peor caso.',
                     'latex': '\\Omega(n \\lg n)',
-                    'explanation': 'MergeSort tiene el mismo comportamiento en todos los casos.'
+                    'explanation': 'La división del problema es la misma sin importar la entrada.'
                 }
             ]
         

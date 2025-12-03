@@ -821,6 +821,13 @@ class RecurrenceSolver:
         # Resolver
         resultado = self.resolver(recurrencia)
         
+        # Convertir pasos a formato estructurado para el frontend
+        pasos_estructurados = self._convertir_pasos_a_objetos(
+            resultado.pasos_matematicos,
+            resultado.metodo_usado,
+            resultado.complejidad_Theta
+        )
+        
         # Convertir a diccionario
         return {
             "complexity": resultado.complejidad_Theta,
@@ -828,7 +835,7 @@ class RecurrenceSolver:
             "big_omega": resultado.complejidad_Omega,
             "big_theta": resultado.complejidad_Theta,
             "method_used": resultado.metodo_usado.value,
-            "solution_steps": resultado.pasos_matematicos,
+            "solution_steps": pasos_estructurados,
             "justification": resultado.justificacion,
             "is_exact": resultado.es_exacto,
             "confidence": resultado.confianza,
@@ -875,6 +882,165 @@ class RecurrenceSolver:
             return 1.0
         
         return 0.0
+
+    def _convertir_pasos_a_objetos(
+        self, 
+        pasos: List[str], 
+        metodo: MetodoResolucion,
+        complejidad_final: str
+    ) -> List[Dict[str, Any]]:
+        """
+        Convierte los pasos de resolución (strings) al formato estructurado
+        que espera el frontend.
+        
+        Formato esperado por frontend:
+        {
+            'step': int,
+            'title': str,
+            'description': str,
+            'latex': str,
+            'explanation': str
+        }
+        """
+        if not pasos:
+            # Si no hay pasos, generar pasos básicos según el método
+            return self._generar_pasos_basicos(metodo, complejidad_final)
+        
+        pasos_estructurados = []
+        
+        # Nombres amigables para los métodos
+        nombres_metodos = {
+            MetodoResolucion.MAESTRO: "Teorema Maestro",
+            MetodoResolucion.ARBOL: "Árbol de Recursión",
+            MetodoResolucion.SUSTITUCION: "Método de Sustitución",
+            MetodoResolucion.AKRA_BAZZI: "Teorema Akra-Bazzi",
+            MetodoResolucion.CAMBIO_VARIABLES: "Cambio de Variables",
+            MetodoResolucion.ITERACION: "Método de Iteración",
+            MetodoResolucion.GENERATRICES: "Funciones Generatrices"
+        }
+        
+        nombre_metodo = nombres_metodos.get(metodo, "Análisis de Recurrencias")
+        
+        for i, paso in enumerate(pasos):
+            paso_obj = {
+                'step': i + 1,
+                'title': self._extraer_titulo(paso, i, nombre_metodo),
+                'description': paso,
+                'latex': self._extraer_latex(paso),
+                'explanation': self._extraer_explicacion(paso, metodo)
+            }
+            pasos_estructurados.append(paso_obj)
+        
+        return pasos_estructurados
+    
+    def _extraer_titulo(self, paso: str, indice: int, nombre_metodo: str) -> str:
+        """Extrae o genera un título para el paso."""
+        # Si el paso empieza con "Paso X:" o similar
+        if paso.lower().startswith("paso"):
+            partes = paso.split(":", 1)
+            if len(partes) > 1:
+                return partes[0].strip()
+        
+        # Títulos según la posición
+        if indice == 0:
+            return f"Identificar forma de la recurrencia"
+        elif indice == 1:
+            return f"Aplicar {nombre_metodo}"
+        elif "conclusi" in paso.lower() or "result" in paso.lower():
+            return "Conclusión"
+        else:
+            return f"Paso {indice + 1}: Resolución"
+    
+    def _extraer_latex(self, paso: str) -> str:
+        """Extrae o genera expresiones LaTeX del paso."""
+        # Buscar patrones matemáticos comunes
+        latex_patterns = [
+            (r'T\(n\)\s*=\s*[^\n]+', lambda m: m.group().replace('=', ' = ')),
+            (r'Θ\([^)]+\)', lambda m: f"\\Theta({m.group()[2:-1]})"),
+            (r'O\([^)]+\)', lambda m: f"O({m.group()[2:-1]})"),
+            (r'Ω\([^)]+\)', lambda m: f"\\Omega({m.group()[2:-1]})"),
+            (r'n\^(\d+)', lambda m: f"n^{{{m.group(1)}}}"),
+            (r'log_?(\d*)\s*n', lambda m: f"\\log{'_' + m.group(1) if m.group(1) else ''} n"),
+            (r'lg\s*n', lambda m: "\\lg n"),
+        ]
+        
+        # Intentar encontrar una expresión matemática
+        for pattern, _ in latex_patterns:
+            match = re.search(pattern, paso)
+            if match:
+                latex = match.group()
+                # Limpiar para LaTeX
+                latex = latex.replace('Θ', '\\Theta').replace('Ω', '\\Omega')
+                return latex
+        
+        # Si contiene "Θ" o complejidad, extraerla
+        if 'Θ(' in paso:
+            match = re.search(r'Θ\([^)]+\)', paso)
+            if match:
+                return match.group().replace('Θ', '\\Theta')
+        
+        return ""
+    
+    def _extraer_explicacion(self, paso: str, metodo: MetodoResolucion) -> str:
+        """Genera una explicación contextual para el paso."""
+        explicaciones_metodo = {
+            MetodoResolucion.MAESTRO: "Aplicando el Teorema Maestro de Cormen Cap. 4.5",
+            MetodoResolucion.ARBOL: "Sumando los costos de cada nivel del árbol",
+            MetodoResolucion.ITERACION: "Expandiendo la recurrencia iterativamente",
+            MetodoResolucion.GENERATRICES: "Usando funciones generatrices para recurrencias lineales",
+            MetodoResolucion.AKRA_BAZZI: "Usando el teorema generalizado Akra-Bazzi",
+        }
+        
+        base = explicaciones_metodo.get(metodo, "Análisis matemático de la recurrencia")
+        
+        # Añadir contexto según el contenido del paso
+        if "caso 1" in paso.lower():
+            return f"{base}. Caso 1: f(n) es polinomialmente menor que n^(log_b a)."
+        elif "caso 2" in paso.lower():
+            return f"{base}. Caso 2: f(n) y n^(log_b a) son del mismo orden."
+        elif "caso 3" in paso.lower():
+            return f"{base}. Caso 3: f(n) domina."
+        
+        return base
+    
+    def _generar_pasos_basicos(self, metodo: MetodoResolucion, complejidad: str) -> List[Dict[str, Any]]:
+        """Genera pasos básicos cuando no hay pasos específicos."""
+        nombres_metodos = {
+            MetodoResolucion.MAESTRO: "Teorema Maestro",
+            MetodoResolucion.ARBOL: "Árbol de Recursión",
+            MetodoResolucion.SUSTITUCION: "Método de Sustitución",
+            MetodoResolucion.AKRA_BAZZI: "Teorema Akra-Bazzi",
+            MetodoResolucion.CAMBIO_VARIABLES: "Cambio de Variables",
+            MetodoResolucion.ITERACION: "Método de Iteración",
+            MetodoResolucion.GENERATRICES: "Funciones Generatrices"
+        }
+        
+        nombre = nombres_metodos.get(metodo, "Análisis de Recurrencias")
+        comp_latex = complejidad.replace('Θ', '\\Theta').replace('Ω', '\\Omega')
+        
+        return [
+            {
+                'step': 1,
+                'title': 'Identificar la recurrencia',
+                'description': f'Se identificó el patrón de la recurrencia y se aplicará {nombre}.',
+                'latex': 'T(n) = aT(n/b) + f(n)',
+                'explanation': 'Forma estándar de divide y vencerás.'
+            },
+            {
+                'step': 2,
+                'title': f'Aplicar {nombre}',
+                'description': f'Usando {nombre} para resolver la recurrencia.',
+                'latex': comp_latex,
+                'explanation': f'Referencia: Cormen et al., Chapter 4.'
+            },
+            {
+                'step': 3,
+                'title': 'Resultado final',
+                'description': f'La complejidad asintótica del algoritmo es {complejidad}.',
+                'latex': comp_latex,
+                'explanation': 'Esta es la complejidad del peor caso para el algoritmo recursivo.'
+            }
+        ]
 
 
 # =========================================================================
