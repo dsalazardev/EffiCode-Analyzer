@@ -12,6 +12,9 @@ from typing import TYPE_CHECKING, Dict, Any, List
 import ast
 import json
 
+# Importar el solver de recurrencias matemáticas
+from Servicios.RecurrenceSolver import RecurrenceSolver
+
 if TYPE_CHECKING:
     from Servicios.Ast import AST
     from Servicios.LLMService import LLMService
@@ -27,10 +30,15 @@ class RecursiveAnalyzerService:
     - Quicksort (Θ(n lg n) promedio vs Θ(n²) peor caso)
     - Algoritmos divide y vencerás con pivote aleatorio
     - Recurrencias con división aleatoria
+    
+    NUEVO: Integra RecurrenceSolver para resolver matemáticamente
+    cualquier ecuación de recurrencia usando 7 métodos de Cormen.
     """
 
     def __init__(self, llm_service: 'LLMService' = None):
         self._llm_service = llm_service
+        # Inicializar el solver matemático de recurrencias
+        self._recurrence_solver = RecurrenceSolver()
 
     @property
     def llm_service(self) -> 'LLMService':
@@ -246,6 +254,129 @@ class RecursiveAnalyzerService:
             "tipo": division_detectada,
             "factor": factor_division
         }
+
+    def resolver_recurrencia_matematica(self, ast_obj: 'AST') -> Dict[str, Any]:
+        """
+        Resuelve la ecuación de recurrencia usando métodos matemáticos rigurosos.
+        
+        Este método integra el RecurrenceSolver que implementa los 7 métodos
+        de Cormen para resolver recurrencias:
+        
+        1. Teorema Maestro (Cap. 4.5): T(n) = aT(n/b) + f(n)
+        2. Teorema Akra-Bazzi: Generalización para subproblemas desiguales
+        3. Método de Sustitución (Cap. 4.3): Adivinar y demostrar por inducción
+        4. Árbol de Recursión (Cap. 4.4): Visualización y suma de costos
+        5. Método de Iteración: Expansión directa de la recurrencia
+        6. Cambio de Variables (Cap. 4.6): Para recurrencias no algebraicas
+        7. Funciones Generadoras (Apéndice A): Para recurrencias lineales
+        
+        Args:
+            ast_obj: Árbol sintáctico abstracto del algoritmo
+            
+        Returns:
+            Dict con la solución completa incluyendo:
+            - complexity: Complejidad asintótica final
+            - method_used: Método de solución utilizado
+            - solution_steps: Pasos detallados de la resolución
+            - all_results: Resultados de todos los métodos aplicables
+        """
+        # 1. Detectar el patrón recursivo
+        patron_recursivo = self.detectar_patron_recursivo(ast_obj)
+        
+        # 2. Generar la ecuación de recurrencia
+        ecuacion_info = self.generar_ecuacion_recurrencia(ast_obj)
+        
+        # 3. Resolver usando el solver matemático
+        resultado_solver = self._recurrence_solver.solve(
+            a=ecuacion_info['a'],
+            b=ecuacion_info['b'],
+            f_n=ecuacion_info['f_n'],
+            recurrence_type=ecuacion_info.get('tipo_especial')
+        )
+        
+        # 4. Combinar con información del patrón
+        return {
+            "ecuacion": ecuacion_info['ecuacion'],
+            "patron_detectado": patron_recursivo,
+            "parametros_recurrencia": {
+                "a": ecuacion_info['a'],
+                "b": ecuacion_info['b'],
+                "f_n": ecuacion_info['f_n'],
+                "tipo_especial": ecuacion_info.get('tipo_especial')
+            },
+            "solucion_matematica": resultado_solver,
+            "complejidad_final": resultado_solver.get('complexity', 'No determinada'),
+            "metodo_solucion": resultado_solver.get('method_used', 'Análisis general'),
+            "pasos_resolucion": resultado_solver.get('solution_steps', []),
+            "todos_resultados": resultado_solver.get('all_results', {}),
+            "justificacion": self._generar_justificacion_completa(
+                ecuacion_info, patron_recursivo, resultado_solver
+            )
+        }
+    
+    def _generar_justificacion_completa(
+        self, 
+        ecuacion_info: Dict[str, Any], 
+        patron: Dict[str, Any], 
+        solucion: Dict[str, Any]
+    ) -> str:
+        """
+        Genera una justificación matemática completa de la solución.
+        """
+        tipo_recursion = patron.get('tipo', 'desconocido').replace('_', ' ').title()
+        ecuacion = ecuacion_info.get('ecuacion', 'T(n) = ?')
+        metodo = solucion.get('method_used', 'Análisis general')
+        complejidad = solucion.get('complexity', 'No determinada')
+        
+        justificacion = f"""
+══════════════════════════════════════════════════════════════════
+                ANÁLISIS DE RECURRENCIA MATEMÁTICO
+              (Basado en Cormen et al., 4ª edición)
+══════════════════════════════════════════════════════════════════
+
+📊 TIPO DE RECURSIÓN DETECTADA: {tipo_recursion}
+
+📐 ECUACIÓN DE RECURRENCIA:
+   {ecuacion}
+
+   Donde:
+   • a = {ecuacion_info['a']} (número de subproblemas)
+   • b = {ecuacion_info['b']} (factor de división)
+   • f(n) = O({ecuacion_info['f_n']}) (trabajo no recursivo)
+
+🔧 MÉTODO DE SOLUCIÓN: {metodo}
+
+📈 COMPLEJIDAD FINAL: {complejidad}
+"""
+        
+        # Agregar pasos de resolución si existen
+        pasos = solucion.get('solution_steps', [])
+        if pasos:
+            justificacion += "\n📝 PASOS DE RESOLUCIÓN:\n"
+            for i, paso in enumerate(pasos, 1):
+                if isinstance(paso, dict):
+                    titulo = paso.get('title', f'Paso {i}')
+                    desc = paso.get('description', '')
+                    latex = paso.get('latex', '')
+                    justificacion += f"\n   {i}. {titulo}\n"
+                    if desc:
+                        justificacion += f"      {desc}\n"
+                    if latex:
+                        justificacion += f"      → {latex}\n"
+                else:
+                    justificacion += f"\n   {i}. {paso}\n"
+        
+        # Agregar referencias a Cormen
+        justificacion += f"""
+══════════════════════════════════════════════════════════════════
+📚 REFERENCIAS:
+   • Introduction to Algorithms, Cormen et al., 4ª edición
+   • Capítulo 4: Divide y Vencerás
+   • Secciones 4.3-4.6: Métodos de Resolución de Recurrencias
+══════════════════════════════════════════════════════════════════
+"""
+        
+        return justificacion
 
     def generar_ecuacion_recurrencia(self, ast_obj: 'AST') -> Dict[str, Any]:
         """
@@ -657,9 +788,13 @@ Responde ÚNICAMENTE con el JSON válido, sin texto adicional.
                 f"- Factor constante: {caso_promedio.get('constante_factor', 'N/A')}\n\n"
             )
         
+        justificacion_mat = solucion_llm.get('justificacion_matematica', 
+                                              solucion_llm.get('justificacion', 'Análisis de recurrencia'))
+        referencias = solucion_llm.get('referencias', 'Cormen et al.')
+        
         return (
             base +
             caso_promedio_str +
-            f"**Resolución Matemática:**\n{solucion_llm['justificacion_matematica']}\n\n"
-            f"**Referencia:** {solucion_llm['referencias']} - Introduction to Algorithms"
+            f"**Resolución Matemática:**\n{justificacion_mat}\n\n"
+            f"**Referencia:** {referencias} - Introduction to Algorithms"
         )

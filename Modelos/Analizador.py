@@ -191,8 +191,19 @@ class Analizador:
 
     def analizar_recursivo(self, algoritmo: Algoritmo) -> Complejidad:
         """
-        Analiza algoritmos RECURSIVOS usando LLM para resolver ecuaciones de recurrencia.
-        Delega la lógica al servicio especializado RecursiveAnalyzerService.
+        Analiza algoritmos RECURSIVOS usando múltiples métodos:
+        
+        1. RecurrenceSolver: Resuelve matemáticamente usando 7 métodos de Cormen:
+           - Teorema Maestro
+           - Akra-Bazzi
+           - Sustitución
+           - Árbol de recursión
+           - Iteración
+           - Cambio de variables
+           - Funciones generatrices
+           
+        2. LLM (si disponible): Para análisis de caso promedio y validación
+        
         Incluye análisis de caso promedio basado en Cormen Cap. 5 y 7.
         """
         if not algoritmo.arbol_sintactico:
@@ -204,30 +215,54 @@ class Analizador:
         # 1. Generar ecuación de recurrencia
         analisis_recurrencia = self._recursive_service.generar_ecuacion_recurrencia(algoritmo.arbol_sintactico)
         
-        # 2. Usar LLM para resolver la ecuación (ahora incluye caso promedio)
+        # 2. NUEVO: Resolver matemáticamente usando RecurrenceSolver (7 métodos de Cormen)
+        solucion_matematica = self._recursive_service.resolver_recurrencia_matematica(algoritmo.arbol_sintactico)
+        
+        # 3. Usar LLM para análisis adicional (caso promedio detallado, si disponible)
         solucion_llm = self._recursive_service.resolver_recurrencia_con_llm(
             analisis_recurrencia["ecuacion"],
             analisis_recurrencia["patron"],
             algoritmo.codigo_fuente
         )
         
-        # 3. Generar pasos del caso promedio para algoritmos recursivos
+        # 4. Combinar resultados: priorizar solución matemática, enriquecer con LLM
+        if solucion_matematica.get('complejidad_final') and solucion_matematica['complejidad_final'] != 'No determinada':
+            # Usar la solución matemática como base
+            complejidad_final = solucion_matematica['complejidad_final']
+            metodo_resolucion = solucion_matematica['metodo_solucion']
+            pasos_resolucion = solucion_matematica['pasos_resolucion']
+            
+            # Actualizar solucion_llm con los valores matemáticos
+            solucion_llm['notacion_theta'] = complejidad_final
+            solucion_llm['metodo_utilizado'] = f"RecurrenceSolver ({metodo_resolucion})"
+            solucion_llm['pasos_resolucion_matematica'] = pasos_resolucion
+        
+        # 5. Generar pasos del caso promedio para algoritmos recursivos
         pasos_caso_promedio = self._recursive_service.generar_pasos_caso_promedio_recursivo(
             analisis_recurrencia["patron"]
         )
         
-        # 4. Generar justificación combinada (incluye caso promedio)
+        # 6. Generar justificación combinada (incluye caso promedio)
         justificacion = self._recursive_service.generar_justificacion_combinada(analisis_recurrencia, solucion_llm)
         
-        # 5. Extraer información de caso promedio
+        # Si hay solución matemática, agregar sus detalles a la justificación
+        if solucion_matematica.get('justificacion'):
+            justificacion = solucion_matematica['justificacion'] + "\n\n" + justificacion
+        
+        # 7. Extraer información de caso promedio
         caso_promedio = solucion_llm.get('caso_promedio', {})
         
-        # 6. Construir justification_data con caso promedio
+        # 8. Construir justification_data con caso promedio y solución matemática
         justification_data = {
             'recurrence_equation': analisis_recurrencia['ecuacion'],
             'recursion_type': analisis_recurrencia['patron']['tipo'],
+            'mathematical_solution': {
+                'complexity': solucion_matematica.get('complejidad_final', 'No determinada'),
+                'method': solucion_matematica.get('metodo_solucion', 'N/A'),
+                'steps': solucion_matematica.get('pasos_resolucion', [])
+            },
             'resolution_steps': {
-                'worst_case': [],  # Los pasos se incluyen en la justificación textual
+                'worst_case': solucion_matematica.get('pasos_resolucion', []),
                 'best_case': [],
                 'average_case': pasos_caso_promedio
             },
@@ -253,7 +288,7 @@ class Analizador:
             'references': solucion_llm.get('referencias', 'Cormen et al.')
         }
         
-        # 7. Crear objeto Complejidad con justification_data
+        # 9. Crear objeto Complejidad con justification_data
         complejidad = Complejidad(
             id=algoritmo.id,
             notacion_o=solucion_llm.get('notacion_o', 'O(n)'),
