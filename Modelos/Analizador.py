@@ -232,8 +232,15 @@ class Analizador:
             metodo_resolucion = solucion_matematica['metodo_solucion']
             pasos_resolucion = solucion_matematica['pasos_resolucion']
             
-            # Actualizar solucion_llm con los valores matemáticos
+            # Actualizar solucion_llm con los valores matemáticos (Theta, O y Omega)
             solucion_llm['notacion_theta'] = complejidad_final
+            
+            # Para algoritmos recursivos, O y Ω se derivan de Θ
+            # Si Θ(f(n)), entonces O(f(n)) y Ω(f(n))
+            complejidad_base = complejidad_final.replace('Θ', '').strip('()')
+            solucion_llm['notacion_o'] = f"O({complejidad_base})"
+            solucion_llm['notacion_omega'] = f"Ω({complejidad_base})"
+            
             solucion_llm['metodo_utilizado'] = f"RecurrenceSolver ({metodo_resolucion})"
             solucion_llm['pasos_resolucion_matematica'] = pasos_resolucion
         
@@ -252,10 +259,20 @@ class Analizador:
         # 7. Extraer información de caso promedio
         caso_promedio = solucion_llm.get('caso_promedio', {})
         
+        # Extraer complejidad base para mostrar en frontend
+        complejidad_theta = solucion_llm.get('notacion_theta', 'Θ(n)')
+        complejidad_o = solucion_llm.get('notacion_o', 'O(n)')
+        complejidad_omega = solucion_llm.get('notacion_omega', 'Ω(1)')
+        
+        # Para recursivos, generar pasos de mejor caso basados en el tipo
+        tipo_recursion = analisis_recurrencia['patron']['tipo']
+        pasos_mejor_caso = self._generar_pasos_mejor_caso_recursivo(tipo_recursion, analisis_recurrencia)
+        
         # 8. Construir justification_data con caso promedio y solución matemática
         justification_data = {
             'recurrence_equation': analisis_recurrencia['ecuacion'],
-            'recursion_type': analisis_recurrencia['patron']['tipo'],
+            'recursion_type': tipo_recursion,
+            'is_recursive': True,  # Marcar como recursivo para el frontend
             'mathematical_solution': {
                 'complexity': solucion_matematica.get('complejidad_final', 'No determinada'),
                 'method': solucion_matematica.get('metodo_solucion', 'N/A'),
@@ -263,21 +280,21 @@ class Analizador:
             },
             'resolution_steps': {
                 'worst_case': solucion_matematica.get('pasos_resolucion', []),
-                'best_case': [],
+                'best_case': pasos_mejor_caso,
                 'average_case': pasos_caso_promedio
             },
             'conclusion': {
                 'worst_case': {
-                    'dominant_term': solucion_llm.get('notacion_o', 'O(n)').replace('O(', '').replace(')', ''),
-                    'complexity': solucion_llm.get('notacion_o', 'O(n)')
+                    'dominant_term': complejidad_o.replace('O(', '').replace(')', ''),
+                    'complexity': complejidad_o
                 },
                 'best_case': {
-                    'dominant_term': solucion_llm.get('notacion_omega', 'Ω(1)').replace('Ω(', '').replace(')', ''),
-                    'complexity': solucion_llm.get('notacion_omega', 'Ω(1)')
+                    'dominant_term': complejidad_omega.replace('Ω(', '').replace(')', ''),
+                    'complexity': complejidad_omega
                 },
                 'average_case': {
-                    'complexity': caso_promedio.get('notacion', solucion_llm.get('notacion_theta', 'Θ(n)')),
-                    'dominant_term': caso_promedio.get('notacion', 'n').replace('E[T(n)] = Θ(', '').replace(')', ''),
+                    'complexity': caso_promedio.get('notacion', complejidad_theta),
+                    'dominant_term': complejidad_theta.replace('Θ(', '').replace(')', ''),
                     'description': (
                         f"Distribución asumida: {caso_promedio.get('distribucion_asumida', 'N/A')}. "
                         f"Factor constante: {caso_promedio.get('constante_factor', 'N/A')}"
@@ -291,9 +308,9 @@ class Analizador:
         # 9. Crear objeto Complejidad con justification_data
         complejidad = Complejidad(
             id=algoritmo.id,
-            notacion_o=solucion_llm.get('notacion_o', 'O(n)'),
-            notacion_omega=solucion_llm.get('notacion_omega', 'Ω(1)'),
-            notacion_theta=solucion_llm.get('notacion_theta', 'Θ(n)'),
+            notacion_o=complejidad_o,
+            notacion_omega=complejidad_omega,
+            notacion_theta=complejidad_theta,
             justificacion=justificacion,
             justification_data=justification_data
         )
@@ -301,6 +318,115 @@ class Analizador:
         complejidad.analizador = self
         self._complejidad = complejidad
         return complejidad
+
+    def _generar_pasos_mejor_caso_recursivo(self, tipo_recursion: str, analisis_recurrencia: Dict[str, Any]) -> List[Dict[str, str]]:
+        """
+        Genera los pasos de resolución para el MEJOR CASO de algoritmos recursivos.
+        
+        Para la mayoría de algoritmos recursivos, el mejor caso ocurre cuando:
+        - Se alcanza el caso base inmediatamente
+        - La división del problema es óptima
+        """
+        ecuacion = analisis_recurrencia.get('ecuacion', 'T(n)')
+        
+        if tipo_recursion == "recursion_exponencial_fibonacci":
+            return [
+                {
+                    'step': 1,
+                    'title': 'Mejor caso: n ≤ 1 (caso base)',
+                    'description': 'Cuando n es 0 o 1, se retorna inmediatamente sin recursión.',
+                    'latex': 'T(0) = T(1) = \\Theta(1)',
+                    'explanation': 'El caso base tiene complejidad constante.'
+                },
+                {
+                    'step': 2,
+                    'title': 'Conclusión del mejor caso',
+                    'description': 'El mejor caso para Fibonacci recursivo es O(1) cuando n ≤ 1.',
+                    'latex': '\\Omega(1)',
+                    'explanation': 'Sin embargo, para n > 1, la complejidad es siempre exponencial.'
+                }
+            ]
+        
+        elif tipo_recursion == "recursion_binaria":
+            return [
+                {
+                    'step': 1,
+                    'title': 'Mejor caso: División balanceada',
+                    'description': 'El mejor caso ocurre cuando la división siempre es perfectamente balanceada.',
+                    'latex': 'T(n) = 2T(n/2) + \\Theta(n)',
+                    'explanation': 'Aplica para MergeSort, donde la división siempre es n/2.'
+                },
+                {
+                    'step': 2,
+                    'title': 'Solución del mejor caso',
+                    'description': 'Por el Teorema Maestro (Caso 2), el mejor caso es Θ(n lg n).',
+                    'latex': '\\Omega(n \\lg n)',
+                    'explanation': 'MergeSort tiene el mismo comportamiento en todos los casos.'
+                }
+            ]
+        
+        elif tipo_recursion == "recursion_lineal":
+            return [
+                {
+                    'step': 1,
+                    'title': 'Mejor caso: Caso base alcanzado',
+                    'description': 'El mejor caso ocurre cuando n = 0 o se encuentra el elemento buscado inmediatamente.',
+                    'latex': 'T(1) = \\Theta(1)',
+                    'explanation': 'El caso base tiene complejidad constante.'
+                },
+                {
+                    'step': 2,
+                    'title': 'Conclusión',
+                    'description': 'Para recursión lineal, el mejor caso es constante si alcanzamos el caso base.',
+                    'latex': '\\Omega(1)',
+                    'explanation': 'Sin embargo, el caso típico sigue siendo lineal O(n).'
+                }
+            ]
+        
+        elif tipo_recursion == "recursion_multiple":
+            # Torres de Hanoi y similares: T(n) = 2T(n-1) + O(1)
+            return [
+                {
+                    'step': 1,
+                    'title': 'Mejor caso: n = 1 (caso base)',
+                    'description': 'Cuando hay un solo disco, solo se necesita un movimiento.',
+                    'latex': 'T(1) = \\Theta(1)',
+                    'explanation': 'El caso base tiene complejidad constante.'
+                },
+                {
+                    'step': 2,
+                    'title': 'Análisis de la recurrencia',
+                    'description': 'Torres de Hanoi tiene T(n) = 2T(n-1) + 1, que resuelve a T(n) = 2^n - 1.',
+                    'latex': 'T(n) = 2^n - 1 = \\Theta(2^n)',
+                    'explanation': 'Por el método de iteración: T(n) = 2T(n-1) + 1 = 2(2T(n-2)+1) + 1 = ... = 2^n - 1'
+                },
+                {
+                    'step': 3,
+                    'title': 'Conclusión del mejor caso',
+                    'description': 'El mejor caso para n > 1 sigue siendo Ω(2^n), ya que siempre se requieren 2^n - 1 movimientos.',
+                    'latex': '\\Omega(2^n)',
+                    'explanation': 'No existe un caso mejor que el exponencial para Torres de Hanoi con n > 1.'
+                }
+            ]
+        
+        else:
+            # Caso general
+            return [
+                {
+                    'step': 1,
+                    'title': 'Análisis del mejor caso',
+                    'description': f'Para la recurrencia {ecuacion}, el mejor caso depende de cuándo se alcanza el caso base.',
+                    'latex': 'T(1) = \\Theta(1)',
+                    'explanation': 'El caso base siempre tiene complejidad constante.'
+                },
+                {
+                    'step': 2,
+                    'title': 'Cota inferior',
+                    'description': 'El mejor caso establece una cota inferior para el algoritmo.',
+                    'latex': '\\Omega(\\text{depende del algoritmo})',
+                    'explanation': 'Consulte el análisis específico del algoritmo.'
+                }
+            ]
 
     def es_recursivo(self, algoritmo: Algoritmo) -> bool:
         """
