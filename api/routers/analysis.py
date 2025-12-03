@@ -14,7 +14,11 @@ from Enumerations.tipoAlgoritmo import TipoAlgoritmo
 from Servicios.ReportService import ReportService
 
 from ..deps import get_services, ServiceContainer
-from ..schemas.analysis import AnalysisRequest, AnalysisResponse, ReportRequest, ValidationRequest, ValidationResponse
+from ..schemas.analysis import (
+    AnalysisRequest, AnalysisResponse, ReportRequest, 
+    ValidationRequest, ValidationResponse,
+    NaturalLanguageRequest, NaturalLanguageResponse
+)
 
 
 router = APIRouter(
@@ -337,3 +341,71 @@ async def generate_json_report(request: ReportRequest):
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error generando JSON: {str(e)}")
+
+
+@router.post(
+    "/translate/natural-to-pseudocode",
+    response_model=NaturalLanguageResponse,
+    summary="Traducir lenguaje natural a pseudocódigo",
+    description="Usa IA para convertir una descripción en lenguaje natural a pseudocódigo estilo Cormen"
+)
+async def translate_natural_to_pseudocode(
+    request: NaturalLanguageRequest,
+    services: ServiceContainer = Depends(get_services)
+):
+    """
+    Traduce una descripción en lenguaje natural a pseudocódigo estilo Cormen.
+    
+    Esta funcionalidad utiliza un modelo de lenguaje (LLM) para interpretar
+    la descripción del usuario y generar pseudocódigo siguiendo las convenciones
+    del libro "Introduction to Algorithms" de Cormen.
+    
+    ⚠️ ADVERTENCIA: Esta funcionalidad depende de IA externa (Google Gemini).
+    Si el servicio no está disponible, la operación fallará.
+    
+    Args:
+        request: Objeto con el texto en lenguaje natural
+        
+    Returns:
+        NaturalLanguageResponse con el pseudocódigo generado
+        
+    Raises:
+        HTTPException 503: Si el servicio de IA no está disponible
+        HTTPException 500: Si ocurre un error durante la traducción
+    """
+    try:
+        # Verificar que el servicio LLM esté disponible
+        if services.llm_service is None:
+            raise HTTPException(
+                status_code=503,
+                detail="El servicio de IA no está disponible. Configure la variable GOOGLE_API_KEY."
+            )
+        
+        # Realizar la traducción
+        pseudocode = services.llm_service.traducir_natural_a_pseudocodigo(request.text)
+        
+        # Verificar si hubo error en la respuesta
+        if pseudocode.startswith("# Error:"):
+            raise HTTPException(
+                status_code=503,
+                detail="Error al contactar el servicio de IA. Intente nuevamente."
+            )
+        
+        # Limpiar el pseudocódigo (remover marcadores de código si existen)
+        pseudocode = pseudocode.replace("```pseudocode", "").replace("```", "").strip()
+        
+        return NaturalLanguageResponse(
+            pseudocode=pseudocode,
+            status="completed",
+            warning="⚠️ Este resultado fue generado por IA. Verifique la sintaxis antes de analizar."
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error durante la traducción: {str(e)}"
+        )

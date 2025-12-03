@@ -145,3 +145,42 @@ class ValidationResponse(BaseModel):
                 "status": "completed"
             }
         }
+
+
+class NaturalLanguageRequest(BaseModel):
+    """Request para traducir lenguaje natural a pseudocódigo."""
+    text: str = Field(
+        ..., 
+        description="Descripción en lenguaje natural del algoritmo a convertir",
+        min_length=10
+    )
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "text": "Un algoritmo que ordena una lista comparando elementos adyacentes y los intercambia si están en el orden incorrecto, repitiendo hasta que la lista esté ordenada"
+            }
+        }
+
+
+class NaturalLanguageResponse(BaseModel):
+    """Response con el pseudocódigo generado desde lenguaje natural."""
+    pseudocode: str = Field(..., description="Pseudocódigo estilo Cormen generado")
+    status: str = Field(default="completed", description="Estado: 'completed' o 'error'")
+    warning: str = Field(
+        default="Este resultado fue generado por IA. Verifique la sintaxis antes de analizar.",
+        description="Advertencia sobre el uso de IA"
+    )
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "pseudocode": """BUBBLE-SORT(A, n)
+    for i ← 1 to n - 1 do
+        for j ← n downto i + 1 do
+            if A[j] < A[j - 1] then
+                exchange A[j] with A[j - 1]""",
+                "status": "completed",
+                "warning": "Este resultado fue generado por IA. Verifique la sintaxis antes de analizar."
+            }
+        }

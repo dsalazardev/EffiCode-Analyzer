@@ -195,22 +195,53 @@ class LLMService:
         """Usa el LLM para convertir lenguaje natural a pseudocódigo estilo Cormen."""
 
         prompt = f"""
-                    Actúa como un experto en el libro 'Introduction to Algorithms' de Cormen.
+            Actúa como un generador de pseudocódigo del libro 'Introduction to Algorithms' de Cormen.
 
-                    **Contexto Académico:** Tu única fuente de verdad es el libro 'Introduction to Algorithms' proporcionado. 
+            **REGLAS ESTRICTAS - DEBES SEGUIRLAS:**
+            1. **SOLO CÓDIGO:** Responde ÚNICAMENTE con el pseudocódigo. SIN explicaciones, SIN títulos, SIN markdown, SIN numeración de líneas.
+            2. **Formato exacto del libro:**
+            - Usa `←` para asignaciones (NO `=`)
+            - Usa `A.length` para longitud de arreglos
+            - Usa `for ... to ... do`, `while ... do`, `if ... then`
+            - Usa `exchange A[i] with A[j]` para intercambios
+            - Comentarios con `//` al inicio de línea si es necesario
+            3. **Indentación:** Usa 4 espacios para cada nivel de indentación
+            4. **Sin numeración:** NO pongas números de línea (1, 2, 3...)
+            5. **Sin bloques de código:** NO uses ``` ni ningún marcador
 
-                    **Tarea:** Convierte la siguiente descripción a pseudocódigo, siguiendo estrictamente el estilo del libro.
+            **EJEMPLO DE FORMATO CORRECTO:**
+            INSERTION-SORT(A, n)
+                for j ← 2 to n do
+                    key ← A[j]
+                    i ← j - 1
+                    while i > 0 and A[i] > key do
+                        A[i + 1] ← A[i]
+                        i ← i - 1
+                    A[i + 1] ← key
+                return A
 
-                    **Reglas de Estilo del Libro:**
-                    - Usa `←` para asignaciones.
-                    - Usa `A.length` para la longitud de arreglos.
-                    - Usa bucles `for`, `while` con la sintaxis del libro.
-                    - Usa comentarios con `//`.
+            **Descripción a convertir:**
+            "{texto}"
 
-                    **Descripción a Convertir que viene en lenguaje Natural:**
-                    "{texto}"
-                    """
-        return self._ejecutar_prompt_con_contexto(prompt)
+            **RESPUESTA (solo el pseudocódigo, nada más):**"""
+        
+        resultado = self._ejecutar_prompt_con_contexto(prompt)
+        
+        # Limpiar cualquier marcador de código que el LLM pueda agregar
+        resultado = resultado.replace("```pseudocode", "").replace("```pseudo", "")
+        resultado = resultado.replace("```", "").strip()
+        
+        # Eliminar líneas que empiecen con # (posibles títulos markdown)
+        lineas = resultado.split('\n')
+        lineas_limpias = [l for l in lineas if not l.strip().startswith('#') and not l.strip().startswith('**')]
+        
+        # Eliminar líneas vacías al inicio y al final
+        while lineas_limpias and not lineas_limpias[0].strip():
+            lineas_limpias.pop(0)
+        while lineas_limpias and not lineas_limpias[-1].strip():
+            lineas_limpias.pop()
+        
+        return '\n'.join(lineas_limpias)
 
     def validar_analisis(self, complejidad: Complejidad, pseudocodigo: str) -> str:
 
