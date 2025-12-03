@@ -185,6 +185,15 @@ class Parser:
         line = re.sub(r'\bmod\b', '%', line, flags=re.IGNORECASE)
         line = re.sub(r'\bdiv\b', '//', line, flags=re.IGNORECASE)
         
+        # Operadores Techo y Piso (┌x┐ → math.ceil(x), └x┘ → math.floor(x))
+        # Soporta: ┌expr┐, ⌈expr⌉, ceiling(expr), ceil(expr)
+        line = re.sub(r'┌([^┐]+)┐', r'math.ceil(\1)', line)
+        line = re.sub(r'⌈([^⌉]+)⌉', r'math.ceil(\1)', line)
+        line = re.sub(r'\bceiling\s*\(([^)]+)\)', r'math.ceil(\1)', line, flags=re.IGNORECASE)
+        # Soporta: └expr┘, ⌊expr⌋, floor(expr)
+        line = re.sub(r'└([^┘]+)┘', r'math.floor(\1)', line)
+        line = re.sub(r'⌊([^⌋]+)⌋', r'math.floor(\1)', line)
+        
         # Reemplazar guiones en propiedades de objetos (A.heap-size → A.heap_size)
         line = re.sub(r'\.(\w+)-(\w+)', r'.\1_\2', line)
         
