@@ -476,6 +476,155 @@ class RecurrenceSolver:
             }
         }
     
+    def generar_arbol_recursion_lineal(
+        self, 
+        a: int, 
+        f_n: str, 
+        max_niveles: int = 4,
+        tipo: str = "lineal"
+    ) -> Dict[str, Any]:
+        """
+        Genera la estructura de datos del árbol de recursión para recurrencias LINEALES.
+        
+        Para T(n) = aT(n-1) + f(n):
+        - Si a=1 (factorial, búsqueda lineal): Árbol es una cadena
+        - Si a=2 (Hanoi, Fibonacci): Árbol binario con crecimiento exponencial
+        - Si a>2: Árbol n-ario
+        
+        Args:
+            a: Número de llamadas recursivas por nivel
+            f_n: Función de trabajo
+            max_niveles: Número máximo de niveles a mostrar
+            tipo: Tipo de recurrencia ("lineal", "fibonacci", etc.)
+            
+        Returns:
+            Diccionario con la estructura del árbol para el frontend
+        """
+        f_orden = self._parsear_orden_fn(f_n)
+        
+        def crear_nodo_lineal(nivel: int, n_actual: str, node_id: str) -> Dict[str, Any]:
+            """Crea un nodo del árbol recursivamente para recurrencia lineal."""
+            # Calcular el costo en este nodo
+            if f_orden == 0:
+                costo = "c" if n_actual == "n" else f"c"
+            elif f_orden == 1:
+                costo = n_actual
+            else:
+                costo = f"{n_actual}^{int(f_orden)}"
+            
+            nodo = {
+                "id": node_id,
+                "label": f"T({n_actual})",
+                "cost": costo,
+                "level": nivel,
+            }
+            
+            # Generar hijos si no hemos llegado al límite
+            if nivel < max_niveles - 1:
+                hijos = []
+                # Calcular el siguiente valor de n
+                if n_actual == "n":
+                    siguiente_n = "n-1"
+                elif n_actual.startswith("n-"):
+                    val_actual = int(n_actual.split("-")[1])
+                    siguiente_n = f"n-{val_actual + 1}"
+                else:
+                    siguiente_n = "..."
+                
+                # Para Fibonacci: T(n-1) + T(n-2)
+                if tipo == "fibonacci":
+                    hijos.append(crear_nodo_lineal(nivel + 1, siguiente_n, f"{node_id}_0"))
+                    # Segundo hijo para n-2
+                    if n_actual == "n":
+                        siguiente_n_2 = "n-2"
+                    elif n_actual.startswith("n-"):
+                        val_actual = int(n_actual.split("-")[1])
+                        siguiente_n_2 = f"n-{val_actual + 2}"
+                    else:
+                        siguiente_n_2 = "..."
+                    hijos.append(crear_nodo_lineal(nivel + 1, siguiente_n_2, f"{node_id}_1"))
+                else:
+                    # Recursión lineal estándar: a llamadas a T(n-1)
+                    for i in range(a):
+                        hijos.append(crear_nodo_lineal(nivel + 1, siguiente_n, f"{node_id}_{i}"))
+                
+                if hijos:
+                    nodo["children"] = hijos
+            else:
+                # Último nivel visible - caso base
+                nodo["children"] = [{
+                    "id": f"{node_id}_base",
+                    "label": "T(1)" if tipo != "fibonacci" else "T(0)/T(1)",
+                    "cost": "Θ(1)",
+                    "level": nivel + 1,
+                }]
+            
+            return nodo
+        
+        # Generar el árbol
+        root = crear_nodo_lineal(0, "n", "root")
+        
+        # Calcular costos por nivel
+        level_costs = []
+        for i in range(max_niveles):
+            if tipo == "fibonacci":
+                # Fibonacci: aproximadamente φ^i nodos por nivel
+                num_nodos = f"≈φ^{i}" if i > 0 else "1"
+                if f_orden == 0:
+                    costo_nivel = f"{num_nodos} × c"
+                else:
+                    costo_nivel = f"{num_nodos} × O(1)"
+            else:
+                num_nodos = a ** i
+                if f_orden == 0:
+                    costo_nivel = f"{num_nodos} × c"
+                elif f_orden == 1:
+                    costo_nivel = f"{num_nodos} × (n-{i})"
+                else:
+                    costo_nivel = f"{num_nodos} × (n-{i})^{int(f_orden)}"
+            
+            level_costs.append(costo_nivel)
+        
+        # Agregar el costo de las hojas (nivel n)
+        if a == 1:
+            level_costs.append("Θ(1) × n niveles")
+        else:
+            level_costs.append(f"Θ({a}^n) hojas")
+        
+        # Calcular la complejidad total
+        if tipo == "fibonacci":
+            total_cost = "Θ(φ^n) ≈ Θ(1.618^n)"
+            complexity = "Θ(φ^n)"
+        elif a == 1:
+            # T(n) = T(n-1) + f(n) → suma de f(1) + f(2) + ... + f(n)
+            if f_orden == 0:
+                total_cost = "Θ(n)"
+                complexity = "Θ(n)"
+            elif f_orden == 1:
+                total_cost = "Θ(n²)"
+                complexity = "Θ(n²)"
+            else:
+                total_cost = f"Θ(n^{int(f_orden) + 1})"
+                complexity = f"Θ(n^{int(f_orden) + 1})"
+        else:
+            # T(n) = aT(n-1) + f(n) → Θ(a^n)
+            total_cost = f"Θ({a}^n)"
+            complexity = f"Θ({a}^n)"
+        
+        return {
+            "root": root,
+            "levels": max_niveles,
+            "levelCosts": level_costs,
+            "totalCost": total_cost,
+            "complexity": complexity,
+            "parameters": {
+                "a": a,
+                "b": "n-1",  # Decremento lineal
+                "f_n": f_n,
+                "type": tipo
+            }
+        }
+    
     # =========================================================================
     # MÉTODO 3: ITERACIÓN / DESENROLLADO (Iteration Method)
     # =========================================================================
@@ -955,11 +1104,20 @@ class RecurrenceSolver:
         
         # Generar árbol de recursión para visualización (si aplica)
         recursion_tree = None
-        if not recurrencia.es_lineal and b > 1:
-            try:
+        try:
+            if not recurrencia.es_lineal and b > 1:
+                # Divide y vencerás: T(n) = aT(n/b) + f(n)
                 recursion_tree = self.generar_arbol_recursion(a, b, f_n, max_niveles=4)
-            except Exception as e:
-                print(f"Error generando árbol de recursión: {e}")
+            elif recurrencia.es_lineal and a >= 1:
+                # Recursión lineal: T(n) = aT(n-1) + f(n)
+                recursion_tree = self.generar_arbol_recursion_lineal(
+                    a=int(a), 
+                    f_n=f_n, 
+                    max_niveles=4,
+                    tipo=recurrencia.tipo
+                )
+        except Exception as e:
+            print(f"Error generando árbol de recursión: {e}")
         
         # Convertir a diccionario
         return {
