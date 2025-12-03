@@ -8,6 +8,7 @@ from Servicios.Grammar import Grammar
 from Servicios.LLMService import LLMService
 from Modelos.Parser import Parser
 from Modelos.Analizador import Analizador
+from Controladores.AnalisisController import AnalisisController
 
 
 class ServiceContainer:
@@ -50,6 +51,13 @@ class ServiceContainer:
                 llm_service=cls._services["llm_service"]
             )
             
+            # Controladores (orquestan los servicios)
+            cls._services["analisis_controller"] = AnalisisController(
+                parser=cls._services["parser"],
+                analizador=cls._services["analizador"],
+                llm_service=cls._services["llm_service"]
+            )
+            
             cls._initialized = True
             print("✅ Services initialized successfully.")
         except Exception as e:
@@ -79,10 +87,15 @@ class ServiceContainer:
     def analizador(self) -> Analizador:
         return self._services.get("analizador")
     
+    @property
+    def analisis_controller(self) -> AnalisisController:
+        """Controlador de análisis de complejidad."""
+        return self._services.get("analisis_controller")
+    
     @classmethod
     def is_ready(cls) -> bool:
         """Verifica si todos los servicios están inicializados."""
-        required = ["grammar", "llm_service", "parser", "analizador"]
+        required = ["grammar", "llm_service", "parser", "analizador", "analisis_controller"]
         return all(key in cls._services for key in required)
 
 
