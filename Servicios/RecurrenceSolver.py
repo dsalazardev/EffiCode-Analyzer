@@ -351,6 +351,131 @@ class RecurrenceSolver:
             confianza=0.95
         )
     
+    def generar_arbol_recursion(
+        self, 
+        a: float, 
+        b: float, 
+        f_n: str, 
+        max_niveles: int = 4
+    ) -> Dict[str, Any]:
+        """
+        Genera la estructura de datos del árbol de recursión para visualización.
+        
+        Args:
+            a: Número de subproblemas
+            b: Factor de división
+            f_n: Función de trabajo
+            max_niveles: Número máximo de niveles a mostrar
+            
+        Returns:
+            Diccionario con la estructura del árbol para el frontend
+        """
+        f_orden = self._parsear_orden_fn(f_n)
+        log_b_a = math.log(a, b) if a > 0 and b > 1 else 0
+        
+        def crear_nodo(nivel: int, size: str, node_id: str) -> Dict[str, Any]:
+            """Crea un nodo del árbol recursivamente."""
+            # Calcular el costo en este nodo
+            if f_orden == 0:
+                costo = "c"
+            elif f_orden == 1:
+                costo = size
+            else:
+                costo = f"{size}^{int(f_orden)}" if f_orden == int(f_orden) else f"{size}^{f_orden}"
+            
+            nodo = {
+                "id": node_id,
+                "label": f"T({size})",
+                "cost": costo,
+                "level": nivel,
+            }
+            
+            # Generar hijos si no hemos llegado al límite
+            if nivel < max_niveles - 1:
+                hijos = []
+                for i in range(int(a)):
+                    # Calcular el nuevo tamaño
+                    if "/" in size:
+                        # Ej: "n/2" -> "n/4"
+                        parts = size.split("/")
+                        base = parts[0]
+                        divisor = int(parts[1]) * int(b)
+                        nuevo_size = f"{base}/{divisor}"
+                    else:
+                        nuevo_size = f"{size}/{int(b)}"
+                    
+                    hijo = crear_nodo(nivel + 1, nuevo_size, f"{node_id}_{i}")
+                    hijos.append(hijo)
+                
+                if hijos:
+                    nodo["children"] = hijos
+            else:
+                # Último nivel visible - indicar que continúa
+                nodo["children"] = [{
+                    "id": f"{node_id}_leaf",
+                    "label": "...",
+                    "cost": "Θ(1)",
+                    "level": nivel + 1,
+                }]
+            
+            return nodo
+        
+        # Generar el árbol
+        root = crear_nodo(0, "n", "root")
+        
+        # Calcular costos por nivel
+        level_costs = []
+        for i in range(max_niveles):
+            num_nodos = int(a ** i)
+            if f_orden == 0:
+                costo_nivel = f"{num_nodos}c"
+            elif f_orden == 1:
+                divisor = int(b ** i)
+                costo_nivel = f"{num_nodos} × n/{divisor}" if divisor > 1 else f"{num_nodos} × n"
+                if num_nodos == 1:
+                    costo_nivel = f"n/{divisor}" if divisor > 1 else "n"
+                # Simplificar: a^i × n/b^i = n × (a/b)^i
+                razon = a / b
+                if abs(razon - 1) < 0.001:
+                    costo_nivel = "n" if f_orden == 1 else f"n^{int(f_orden)}"
+                elif razon < 1:
+                    costo_nivel = f"({a}/{int(b)})^{i} × n"
+                else:
+                    costo_nivel = f"({a}/{int(b)})^{i} × n"
+            else:
+                costo_nivel = f"({a}/{int(b**f_orden)})^{i} × n^{int(f_orden)}"
+            
+            level_costs.append(costo_nivel)
+        
+        # Agregar el costo de las hojas
+        level_costs.append(f"Θ(n^{log_b_a:.2f})" if log_b_a != int(log_b_a) else f"Θ(n^{int(log_b_a)})")
+        
+        # Calcular la complejidad total
+        razon = a / (b ** f_orden) if b > 0 else 1
+        if abs(razon - 1) < 0.001:
+            total_cost = f"Θ(n^{int(f_orden)} lg n)" if f_orden == int(f_orden) else f"Θ(n^{f_orden} lg n)"
+            complexity = total_cost
+        elif razon < 1:
+            total_cost = f"Θ(n^{int(f_orden)})" if f_orden == int(f_orden) else f"Θ(n^{f_orden})"
+            complexity = total_cost
+        else:
+            total_cost = f"Θ(n^{log_b_a:.2f})" if log_b_a != int(log_b_a) else f"Θ(n^{int(log_b_a)})"
+            complexity = total_cost
+        
+        return {
+            "root": root,
+            "levels": max_niveles,
+            "levelCosts": level_costs,
+            "totalCost": total_cost,
+            "complexity": complexity,
+            "parameters": {
+                "a": a,
+                "b": b,
+                "f_n": f_n,
+                "log_b_a": round(log_b_a, 4)
+            }
+        }
+    
     # =========================================================================
     # MÉTODO 3: ITERACIÓN / DESENROLLADO (Iteration Method)
     # =========================================================================
@@ -828,6 +953,14 @@ class RecurrenceSolver:
             resultado.complejidad_Theta
         )
         
+        # Generar árbol de recursión para visualización (si aplica)
+        recursion_tree = None
+        if not recurrencia.es_lineal and b > 1:
+            try:
+                recursion_tree = self.generar_arbol_recursion(a, b, f_n, max_niveles=4)
+            except Exception as e:
+                print(f"Error generando árbol de recursión: {e}")
+        
         # Convertir a diccionario
         return {
             "complexity": resultado.complejidad_Theta,
@@ -835,16 +968,31 @@ class RecurrenceSolver:
             "big_omega": resultado.complejidad_Omega,
             "big_theta": resultado.complejidad_Theta,
             "method_used": resultado.metodo_usado.value,
+            "method_name": self._obtener_nombre_metodo(resultado.metodo_usado),
             "solution_steps": pasos_estructurados,
             "justification": resultado.justificacion,
             "is_exact": resultado.es_exacto,
             "confidence": resultado.confianza,
+            "recursion_tree": recursion_tree,
             "all_results": {
                 "primary_method": resultado.metodo_usado.value,
                 "complexity": resultado.complejidad_Theta
             },
             "recurrence_form": recurrencia.forma_original or f"T(n) = {a}T(n/{b}) + O({f_n})"
         }
+    
+    def _obtener_nombre_metodo(self, metodo: MetodoResolucion) -> str:
+        """Devuelve el nombre legible del método de resolución."""
+        nombres = {
+            MetodoResolucion.MAESTRO: "Teorema Maestro",
+            MetodoResolucion.ARBOL: "Árbol de Recursión",
+            MetodoResolucion.SUSTITUCION: "Método de Sustitución",
+            MetodoResolucion.AKRA_BAZZI: "Teorema Akra-Bazzi",
+            MetodoResolucion.CAMBIO_VARIABLES: "Cambio de Variables",
+            MetodoResolucion.ITERACION: "Método de Iteración",
+            MetodoResolucion.GENERATRICES: "Funciones Generatrices"
+        }
+        return nombres.get(metodo, "Análisis de Recurrencias")
     
     def _parsear_orden_fn(self, f_n: str) -> float:
         """

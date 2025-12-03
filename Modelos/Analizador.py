@@ -268,6 +268,12 @@ class Analizador:
         tipo_recursion = analisis_recurrencia['patron']['tipo']
         pasos_mejor_caso = self._generar_pasos_mejor_caso_recursivo(tipo_recursion, analisis_recurrencia)
         
+        # Extraer el nombre legible del método
+        metodo_nombre = solucion_matematica.get('solucion_matematica', {}).get('method_name') or \
+                       solucion_llm.get('metodo_utilizado', 'Análisis de Recurrencias')
+        if solucion_matematica.get('metodo_solucion'):
+            metodo_nombre = solucion_matematica['metodo_solucion']
+        
         # 8. Construir justification_data con caso promedio y solución matemática
         justification_data = {
             'recurrence_equation': analisis_recurrencia['ecuacion'],
@@ -283,6 +289,9 @@ class Analizador:
                 'best_case': pasos_mejor_caso,
                 'average_case': pasos_caso_promedio
             },
+            # Árbol de recursión para visualización
+            'recursion_tree': solucion_matematica.get('solucion_matematica', {}).get('recursion_tree'),
+            'method_used': metodo_nombre,
             'conclusion': {
                 'worst_case': {
                     'dominant_term': complejidad_o.replace('O(', '').replace(')', ''),
@@ -301,7 +310,6 @@ class Analizador:
                     )
                 }
             },
-            'method_used': solucion_llm.get('metodo_utilizado', 'Análisis de Recurrencias'),
             'references': solucion_llm.get('referencias', 'Cormen et al.')
         }
         
