@@ -381,36 +381,63 @@ class RecursiveAnalyzerService:
     def generar_ecuacion_recurrencia(self, ast_obj: 'AST') -> Dict[str, Any]:
         """
         Genera la ecuación de recurrencia basada en el análisis estructural.
+        
+        Detecta correctamente:
+        - Recursión lineal: T(n) = T(n-1) + f(n) -> Θ(n) o Θ(n²)
+        - Fibonacci: T(n) = T(n-1) + T(n-2) + f(n) -> Θ(φ^n)
+        - Hanoi: T(n) = 2T(n-1) + f(n) -> Θ(2^n)
+        - Divide y vencerás: T(n) = aT(n/b) + f(n) -> depende de caso
         """
         patron_recursivo = self.detectar_patron_recursivo(ast_obj)
+        division_info = patron_recursivo["division"]
         
         a = 0
         b = 2
         f_n = "1"
         tipo_especial = None
         
+        # Primero: detectar tipo de división (n-1, n/2, etc.)
+        es_division_lineal = division_info["tipo"] in ["n_minus_1", "n_minus_k"]
+        
         if patron_recursivo["tipo"] == "recursion_lineal":
+            # Una sola llamada recursiva con decremento
             a = 1
             b = 1
             tipo_especial = "n_minus_1"
             
-        elif patron_recursivo["tipo"] == "recursion_binaria":
-            a = 2
-            
-        elif patron_recursivo["tipo"] == "recursion_multiple":
-            a = 1
-            
         elif patron_recursivo["tipo"] == "recursion_exponencial_fibonacci":
+            # Fibonacci: T(n-1) + T(n-2)
             a = 2
             b = 1
             tipo_especial = "fibonacci"
             f_n = "1"
             
+        elif patron_recursivo["tipo"] == "recursion_binaria":
+            a = 2
+            # IMPORTANTE: Si la división es n-k (no n/b), es tipo Hanoi
+            if es_division_lineal:
+                b = 1  # Indicador de decremento lineal
+                tipo_especial = "n_minus_1"  # Pero con a=2, el solver sabe que es exponencial
+            else:
+                # Divide y vencerás clásico: MergeSort, etc.
+                if division_info["tipo"] == "mitad":
+                    b = 2
+                elif division_info["tipo"] == "tercio":
+                    b = 3
+                else:
+                    b = 2
+            
+        elif patron_recursivo["tipo"] == "recursion_multiple":
+            a = patron_recursivo["parametros"]["total_llamadas"]
+            if es_division_lineal:
+                b = 1
+                tipo_especial = "n_minus_1"
+            
         else:
             a = patron_recursivo["parametros"]["total_llamadas"]
         
-        if patron_recursivo["tipo"] not in ["recursion_lineal", "recursion_exponencial_fibonacci"]:
-            division_info = patron_recursivo["division"]
+        # Para divide y vencerás (no lineal), detectar el factor de división
+        if not es_division_lineal and patron_recursivo["tipo"] not in ["recursion_lineal", "recursion_exponencial_fibonacci"]:
             if division_info["tipo"] == "mitad":
                 b = 2
             elif division_info["tipo"] == "tercio":
@@ -423,11 +450,18 @@ class RecursiveAnalyzerService:
         
         f_n = self._detectar_costo_no_recursivo(ast_obj, patron_recursivo["tipo"])
         
-        if tipo_especial == "n_minus_1":
-            ecuacion = f"T(n) = T(n-1) + O({f_n})"
-        elif tipo_especial == "fibonacci":
+        # Generar ecuación según el tipo
+        if tipo_especial == "fibonacci":
             ecuacion = f"T(n) = T(n-1) + T(n-2) + O({f_n})"
+        elif tipo_especial == "n_minus_1":
+            if a > 1:
+                # Hanoi y similares: T(n) = aT(n-1) + f(n) -> Θ(a^n)
+                ecuacion = f"T(n) = {a}T(n-1) + O({f_n})"
+            else:
+                # Factorial y similares: T(n) = T(n-1) + f(n) -> Θ(n) o Θ(n²)
+                ecuacion = f"T(n) = T(n-1) + O({f_n})"
         else:
+            # Divide y vencerás: T(n) = aT(n/b) + f(n)
             ecuacion = f"T(n) = {a}T(n/{b}) + O({f_n})"
         
         return {
