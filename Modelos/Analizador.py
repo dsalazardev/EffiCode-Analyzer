@@ -386,7 +386,7 @@ class Analizador:
                     'step': 1,
                     'title': 'Análisis del mejor caso',
                     'description': f'Para la recurrencia {ecuacion}, analizamos el mejor caso.',
-                    'latex': f'T(n) = {a}T(n/{b}) + O({f_n})',
+                    'latex': f'T(n) = {a}T(n-{b}) + O({f_n})',
                     'explanation': 'En algoritmos de división binaria, el mejor caso depende de la estructura del problema.'
                 },
                 {
