@@ -444,9 +444,9 @@ class RecursiveAnalyzerService:
                     (Basado en Cormen et al., 4ª edición)
         ══════════════════════════════════════════════════════════════════
 
-        📊 TIPO DE RECURSIÓN DETECTADA: {tipo_recursion}
+        TIPO DE RECURSIÓN DETECTADA: {tipo_recursion}
 
-        📐 ECUACIÓN DE RECURRENCIA:
+        ECUACIÓN DE RECURRENCIA:
         {ecuacion}
 
         Donde:
@@ -454,9 +454,9 @@ class RecursiveAnalyzerService:
         • b = {ecuacion_info['b']} (factor de división)
         • f(n) = O({ecuacion_info['f_n']}) (trabajo no recursivo)
 
-        🔧 MÉTODO DE SOLUCIÓN: {metodo}
+        MÉTODO DE SOLUCIÓN: {metodo}
 
-        📈 COMPLEJIDAD FINAL: {complejidad}
+        COMPLEJIDAD FINAL: {complejidad}
         """
         
         # Agregar pasos de resolución si existen
@@ -832,7 +832,7 @@ class RecursiveAnalyzerService:
             respuesta_limpia = self._limpiar_respuesta_json(respuesta)
             return json.loads(respuesta_limpia)
         except Exception as e:
-            print(f"❌ Error al resolver recurrencia con LLM: {e}")
+            print(f"Error al resolver recurrencia con LLM: {e}")
             return self.resolver_recurrencia_local(ecuacion, patron)
 
     def _limpiar_respuesta_json(self, respuesta: str) -> str:

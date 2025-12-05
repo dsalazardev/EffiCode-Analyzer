@@ -222,7 +222,7 @@ class ReportService:
         # === PORTADA ===
         story.append(Spacer(1, 1*inch))
         story.append(Paragraph(
-            "📊 Reporte de Análisis de Complejidad",
+            "Reporte de Análisis de Complejidad",
             self._styles['MainTitle']
         ))
         story.append(Spacer(1, 0.3*inch))

@@ -127,7 +127,7 @@ class LLMService:
             state = getattr(file_obj, "state", "DESCONOCIDO")
             uri = getattr(file_obj, "uri", "No disponible")
 
-            print("✅ Archivo subido correctamente.")
+            print("Archivo subido correctamente.")
             print(f"   - ID interno: {file_id}")
             print(f"   - Nombre mostrado: {display_name}")
             print(f"   - Tamaño: {size} bytes")
@@ -297,5 +297,5 @@ class LLMService:
             )
             return response.text.strip()
         except Exception as e:
-            print(f"❌ Error en análisis de complejidad con LLM: {e}")
+            print(f"Error en análisis de complejidad con LLM: {e}")
             raise

@@ -59,9 +59,9 @@ class ServiceContainer:
             )
             
             cls._initialized = True
-            print("✅ Services initialized successfully.")
+            print("Services initialized successfully.")
         except Exception as e:
-            print(f"❌ Error initializing services: {e}")
+            print(f"Error initializing services: {e}")
             raise
     
     @classmethod

@@ -132,7 +132,7 @@ def generate_dataset(num_samples):
     with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
         json.dump(dataset, f, indent=2, ensure_ascii=False)
         
-    print(f"✅ ¡Éxito! Se generó '{OUTPUT_FILE}' con {len(dataset)} ejemplos.")
+    print(f"¡Éxito! Se generó '{OUTPUT_FILE}' con {len(dataset)} ejemplos.")
 
 if __name__ == "__main__":
     generate_dataset(NUM_SAMPLES)

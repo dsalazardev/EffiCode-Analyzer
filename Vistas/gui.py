@@ -211,7 +211,7 @@ class EffiCodeApp:
 
         except Exception as e:
             import traceback
-            error_msg = f"❌ ERROR:\n{type(e).__name__}: {e}\n\n{traceback.format_exc()}"
+            error_msg = f"ERROR:\n{type(e).__name__}: {e}\n\n{traceback.format_exc()}"
             self.update_output(self.trace_output, error_msg)
             self.update_output(self.validation_output, "Análisis fallido.")
             self.update_label(self.o_label, "Error")
